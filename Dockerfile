@@ -2,7 +2,8 @@ FROM golang:1.11 as backend-builder
 WORKDIR /app
 
 ADD go.mod go.sum ./
-RUN go mod download
+# precompile dependencies
+RUN go list -m -u all | tail -n +2 | tr ' ' @ | xargs -n1 env CGO_ENABLED=0 go get -v
 
 ADD cmd/ ./cmd/
 RUN CGO_ENABLED=0 go install -v ./cmd/...
