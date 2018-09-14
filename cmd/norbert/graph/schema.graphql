@@ -1,0 +1,32 @@
+schema {
+    query: RootQuery
+    mutation: RootMutation
+}
+
+type RootQuery {
+    services: [Service!]
+}
+
+type RootMutation {
+}
+
+type Subscription {
+}
+
+enum Severity {
+    Warning
+    Error
+    Critical
+}
+
+type Service {
+    name: String!
+
+    checks: [Check!]
+}
+
+type Check {
+  severity: Severity!
+}
+
+scalar Time

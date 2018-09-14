@@ -1,0 +1,12 @@
+schema: graph/schema.graphql
+exec:
+  filename: graph/generated.go
+model:
+  filename: graph/models_gen.go
+models:
+  Service:
+    model: github.com/frankh/norbert/cmd/norbert/models.Service
+  Check:
+    model: github.com/frankh/norbert/cmd/norbert/models.Check
+  Severity:
+    model: github.com/frankh/norbert/cmd/norbert/models.Severity

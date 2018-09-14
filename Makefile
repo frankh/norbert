@@ -19,4 +19,7 @@ publish:
 version:
 	@echo "${VERSION}"
 
-.PHONY: build publish version
+gqlgen:
+	cd cmd/norbert && gqlgen
+
+.PHONY: build publish version gqlgen
