@@ -33,6 +33,7 @@ func RunCheck(c models.Check) (result check.CheckResult) {
 		if err != nil {
 			log.Println(err)
 			result.ResultCode = check.CheckResultError
+			result.Error = err
 			return
 		}
 
@@ -40,6 +41,7 @@ func RunCheck(c models.Check) (result check.CheckResult) {
 		if err != nil {
 			log.Println(err)
 			result.ResultCode = check.CheckResultError
+			result.Error = err
 			return
 		}
 	}

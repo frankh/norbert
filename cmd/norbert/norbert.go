@@ -1,32 +1,15 @@
 package main
 
 import (
-	"log"
-
 	"github.com/99designs/gqlgen/handler"
 	"github.com/frankh/norbert/cmd/norbert/graph"
-	"github.com/frankh/norbert/cmd/norbert/models"
 	"github.com/frankh/norbert/cmd/norbert/plugins"
-	"github.com/frankh/norbert/cmd/norbert/runner"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
 
 func main() {
 	plugins.LoadAll()
-	log.Println(runner.RunCheck(models.Check{
-		CheckRunner: "http",
-		Vars: map[string]interface{}{
-			"url": "https://www.google.com",
-		},
-	}))
-
-	log.Println(runner.RunCheck(models.Check{
-		CheckRunner: "http_auth",
-		Vars: map[string]interface{}{
-			"url": "https://www.google.com",
-		},
-	}))
 
 	// Echo instance
 	e := echo.New()
