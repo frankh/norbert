@@ -17,8 +17,14 @@ func main() {
 	log.Println(runner.RunCheck(models.Check{
 		CheckRunner: "http",
 		Vars: map[string]interface{}{
-			"url":      "https://www.google.com",
-			"expected": []int{200},
+			"url": "https://www.google.com",
+		},
+	}))
+
+	log.Println(runner.RunCheck(models.Check{
+		CheckRunner: "http_auth",
+		Vars: map[string]interface{}{
+			"url": "https://www.google.com",
 		},
 	}))
 

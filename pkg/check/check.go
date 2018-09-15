@@ -1,5 +1,9 @@
 package check
 
+import (
+	"github.com/frankh/norbert/pkg/types"
+)
+
 type CheckRunner interface {
 	Run(CheckInput) CheckResult
 
@@ -20,6 +24,7 @@ type CheckInput struct {
 type CheckResult struct {
 	ResultCode CheckResultCode
 	Error      error
+	Duration   types.Duration
 }
 
 type CheckResultCode int
