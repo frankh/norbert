@@ -10,7 +10,7 @@ type Severity int
 
 const (
 	_ Severity = iota
-	Warning
+	Info
 	Error
 	Critical
 )
@@ -23,18 +23,18 @@ type CheckRunner struct {
 }
 
 type Service struct {
-	Name string
+	Name string `json:"name"`
 
-	Source string
+	Vars map[string]interface{} `json:"vars"`
 }
 
 type Check struct {
-	CheckRunner string
+	Service     string `json:"service"`
+	CheckRunner string `json:"checkrunner"`
 
-	Service  Service
-	Severity Severity
+	Severity Severity `json:"severity"`
 
-	Source string
+	Vars map[string]interface{} `json:"vars"`
 }
 
 func (t *Severity) UnmarshalGQL(v interface{}) error {

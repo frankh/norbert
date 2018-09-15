@@ -1899,7 +1899,7 @@ type Subscription {
 }
 
 enum Severity {
-    Warning
+    Info
     Error
     Critical
 }

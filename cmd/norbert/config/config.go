@@ -10,6 +10,8 @@ import (
 
 type Config struct {
 	CheckRunners []models.CheckRunner `json:"checkrunners"`
+	Checks       []models.Check       `json:"checks"`
+	Services     []models.Service     `json:"services"`
 }
 
 var config Config
