@@ -15,7 +15,7 @@ func RunCheck(c models.Check) check.CheckResult {
 		log.Println("could not find checkrunner: ", c.CheckRunner)
 		return check.CheckResult{ResultCode: check.CheckResultError}
 	}
-	vars := cr.Input()
+	vars := cr.Vars()
 	log.Println(vars)
 
 	if c.Vars != nil {

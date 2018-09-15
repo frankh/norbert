@@ -7,7 +7,7 @@ import (
 	"github.com/frankh/norbert/pkg/types"
 )
 
-type Input struct {
+type Vars struct {
 	Url      string
 	Expected []int
 	Timeout  types.Duration
@@ -16,14 +16,14 @@ type Input struct {
 
 type httpCheckRunner struct{}
 
-func (c *httpCheckRunner) Input() interface{} {
-	return &Input{}
+func (c *httpCheckRunner) Vars() interface{} {
+	return &Vars{}
 }
 
-func (c *httpCheckRunner) Run(checkInput check.CheckInput) check.CheckResult {
-	input := checkInput.Vars.(*Input)
+func (c *httpCheckRunner) Run(input check.CheckInput) check.CheckResult {
+	vars := input.Vars.(*Vars)
 
-	resp, err := http.Get(input.Url)
+	resp, err := http.Get(vars.Url)
 	if err != nil {
 		return check.CheckResult{
 			ResultCode: check.CheckResultError,
@@ -31,7 +31,7 @@ func (c *httpCheckRunner) Run(checkInput check.CheckInput) check.CheckResult {
 		}
 	}
 
-	for _, expected := range input.Expected {
+	for _, expected := range vars.Expected {
 		if resp.StatusCode == expected {
 			return check.CheckResult{
 				ResultCode: check.CheckResultSuccess,
