@@ -15,21 +15,6 @@ const (
 	Critical
 )
 
-func (t *Severity) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	var err error
-	*t, err = SeverityString(str)
-	return err
-}
-
-func (t Severity) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(t.String()))
-}
-
 type Service struct {
 	Name string
 
@@ -49,4 +34,19 @@ type CheckRunner struct {
 	Name string
 
 	DockerImage string
+}
+
+func (t *Severity) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	var err error
+	*t, err = SeverityString(str)
+	return err
+}
+
+func (t Severity) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(t.String()))
 }
