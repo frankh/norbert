@@ -1,6 +1,10 @@
-FROM golang:1.11 as backend-builder
+FROM golang:1.11-alpine as backend-builder
+ENV GO111MODULE=off
 WORKDIR /go/src/github.com/frankh/norbert
+RUN apk add -U git gcc libc-dev
+
 RUN go get github.com/golang/dep/cmd/dep
+RUN go get github.com/gobuffalo/packr/...
 
 ADD Gopkg.toml Gopkg.lock ./
 RUN dep ensure -v -vendor-only
@@ -10,6 +14,7 @@ ADD pkg/ ./pkg/
 RUN go build -v ./pkg/...
 
 ADD cmd/ ./cmd/
+RUN packr
 RUN go install -v ./cmd/...
 
 FROM node:10 as frontend-builder
@@ -24,6 +29,7 @@ ADD /frontend/src ./src
 
 RUN yarn build
 
+# Final image
 FROM golang:1.11-alpine
 
 WORKDIR /app
