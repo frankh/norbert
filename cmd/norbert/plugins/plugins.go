@@ -46,7 +46,7 @@ func buildPlugin(name string, pluginUrl string) (string, error) {
 		return "", err
 	}
 
-	dest := "./plugins/" + name + ".so"
+	dest := "./plugins/" + pluginUrl + ".so"
 	cmd = exec.Command("go", "build", "-buildmode=plugin", "-o", dest, pluginUrl)
 	err = cmd.Run()
 	if err != nil {
@@ -69,7 +69,7 @@ func LoadPlugin(name string, pluginUrl string, defaultVars interface{}) error {
 
 		plug, err := plugin.Open(pluginFile)
 		if err != nil {
-			log.Println(err)
+			log.Println(err, plug)
 			return err
 		}
 
