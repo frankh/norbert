@@ -1,5 +1,6 @@
 import React from 'react';
 import { Query, graphql } from "react-apollo";
+import { List } from "antd";
 import './App.css';
 
 import { GET_SERVICES } from "../queries";
@@ -7,9 +8,15 @@ import { GET_SERVICES } from "../queries";
 
 class ServiceListItem extends React.PureComponent {
     render() {
+        const service = this.props.service;
         return (
             <div className="serviceListItem">
-                {this.props.name}
+                <List.Item>
+                    <List.Item.Meta
+                      title={service.name}
+                      description={<a href={service.url}>{service.url}</a>}
+                    />
+                </List.Item>
             </div>
         )
     }
@@ -33,9 +40,12 @@ class ServiceList extends React.PureComponent {
                     }
                     return (
                         <div className="serviceList">
-                            {data.services.map((service) => (
-                                <ServiceListItem name={service.name} />
-                            ))}
+                            <List
+                                dataSource={data.services}
+                                renderItem={service => (
+                                    <ServiceListItem key={service.name} service={service} />
+                                )}
+                            />
                         </div>
                     )
                 }}

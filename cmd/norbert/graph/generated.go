@@ -52,6 +52,7 @@ type ComplexityRoot struct {
 
 	Service struct {
 		Name   func(childComplexity int) int
+		Url    func(childComplexity int) int
 		Checks func(childComplexity int) int
 	}
 
@@ -144,6 +145,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Service.Name(childComplexity), true
+
+	case "Service.url":
+		if e.complexity.Service.Url == nil {
+			break
+		}
+
+		return e.complexity.Service.Url(childComplexity), true
 
 	case "Service.checks":
 		if e.complexity.Service.Checks == nil {
@@ -472,6 +480,11 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "url":
+			out.Values[i] = ec._Service_url(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "checks":
 			wg.Add(1)
 			go func(i int, field graphql.CollectedField) {
@@ -499,6 +512,28 @@ func (ec *executionContext) _Service_name(ctx context.Context, field graphql.Col
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(ctx context.Context) (interface{}, error) {
 		return obj.Name, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	return graphql.MarshalString(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Service_url(ctx context.Context, field graphql.CollectedField, obj *models.Service) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "Service",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(ctx context.Context) (interface{}, error) {
+		return obj.Url, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1906,6 +1941,7 @@ enum Severity {
 
 type Service {
     name: String!
+    url: String!
 
     checks: [Check!]
 }

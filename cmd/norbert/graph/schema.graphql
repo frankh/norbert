@@ -21,6 +21,7 @@ enum Severity {
 
 type Service {
     name: String!
+    url: String!
 
     checks: [Check!]
 }

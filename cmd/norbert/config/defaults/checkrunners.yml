@@ -17,9 +17,7 @@ checkrunners:
 
 services:
 - name: "Rocketboard"
-
-  vars:
-    url: https://rocketboard.arachnys.com
+  url: https://rocketboard.arachnys.com
 
 checks:
 - name: "HTTP Check"

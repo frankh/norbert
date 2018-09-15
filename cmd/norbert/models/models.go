@@ -33,6 +33,7 @@ type Check struct {
 
 type Service struct {
 	Name string `json:"name"`
+	Url  string `json:"url"`
 
 	Vars interface{} `json:"vars"`
 }
