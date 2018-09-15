@@ -5,9 +5,14 @@ VERSION ?= `git rev-parse --short HEAD`
 IMAGE_NAME = "frankh/${APP_NAME}"
 
 build:
-	docker build --rm \
+	docker build \
 			-t ${IMAGE_NAME}:${VERSION} \
 			.
+
+checkers/http:
+	docker build \
+			-t ${IMAGE_NAME}-checker-http:${VERSION} \
+			checkers/http
 
 run:
 	docker run --rm -p 8000:8000 \
@@ -22,4 +27,4 @@ version:
 gqlgen:
 	cd cmd/norbert && gqlgen
 
-.PHONY: build publish version gqlgen
+.PHONY: build publish version gqlgen checkers/http

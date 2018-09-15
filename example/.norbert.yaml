@@ -1,0 +1,12 @@
+service:
+  name: "Rocketboard"
+
+  vars:
+    url: https://rocketboard.arachnys.com
+
+checks:
+- name: "HTTP Check"
+  checker: http
+
+  vars:
+    url: https://rocketboard.arachnys.com/healthcheck
