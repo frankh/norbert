@@ -22,7 +22,7 @@ func main() {
 		handler.Playground("Norbert", "/query"),
 	))
 
-	e.POST("/query", echo.WrapHandler(handler.GraphQL(
+	e.Match([]string{"GET", "POST"}, "/query", echo.WrapHandler(handler.GraphQL(
 		graph.NewExecutableSchema(graph.Config{
 			Resolvers: graph.NewResolver(),
 		}),

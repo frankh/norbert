@@ -3,14 +3,29 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "apollo-cache-inmemory": "^1.2.10",
+    "apollo-client": "^2.4.2",
+    "apollo-link-error": "^1.1.1",
+    "apollo-link-ws": "^1.0.9",
+    "graphql": "^0.13.0",
+    "graphql-tag": "^2.9.2",
     "react": "^16.5.1",
+    "react-apollo": "^2.1.11",
     "react-dom": "^16.5.1",
-    "react-scripts": "1.1.5"
+    "react-router-dom": "^4.3.1",
+    "react-scripts": "1.1.5",
+    "subscriptions-transport-ws": "^0.9.14"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
+  },
+  "proxy": {
+    "/query": {
+      "target": "http://localhost:8000",
+      "ws": true
+    }
   }
 }
