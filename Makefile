@@ -9,9 +9,6 @@ build:
 			-t ${IMAGE_NAME}:${VERSION} \
 			.
 
-checkers/http:
-	go build checkers/http
-
 run:
 	docker run --rm -p 8000:8000 \
 			${IMAGE_NAME}:${VERSION}
@@ -25,4 +22,4 @@ version:
 gqlgen:
 	cd cmd/norbert && gqlgen
 
-.PHONY: build publish version gqlgen checkers/http
+.PHONY: build publish version gqlgen
