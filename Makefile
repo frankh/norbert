@@ -10,9 +10,7 @@ build:
 			.
 
 checkers/http:
-	docker build \
-			-t ${IMAGE_NAME}-checker-http:${VERSION} \
-			checkers/http
+	go build checkers/http
 
 run:
 	docker run --rm -p 8000:8000 \

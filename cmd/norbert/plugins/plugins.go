@@ -23,7 +23,15 @@ func (r *runnerPlugin) Run(input check.CheckInput) check.CheckResult {
 }
 
 func (r *runnerPlugin) Input() interface{} {
-	return r.Vars
+	// Get new blank input vars
+	vars := r.CheckRunner.Input()
+
+	// Dump our defaults to json and back to copy
+	b, _ := json.Marshal(r.Vars)
+	json.Unmarshal(b, &vars)
+
+	// Return the copy
+	return vars
 }
 
 func init() {

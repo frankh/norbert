@@ -21,20 +21,27 @@ func (c *httpCheckRunner) Input() interface{} {
 }
 
 func (c *httpCheckRunner) Run(checkInput check.CheckInput) check.CheckResult {
-	input := checkInput.Input.(Input)
+	input := checkInput.Vars.(*Input)
 
 	resp, err := http.Get(input.Url)
 	if err != nil {
-		return check.CheckResult{check.CheckResultError}
+		return check.CheckResult{
+			ResultCode: check.CheckResultError,
+			Error:      err,
+		}
 	}
 
 	for _, expected := range input.Expected {
 		if resp.StatusCode == expected {
-			return check.CheckResult{check.CheckResultSuccess}
+			return check.CheckResult{
+				ResultCode: check.CheckResultSuccess,
+			}
 		}
 	}
 
-	return check.CheckResult{check.CheckResultFailure}
+	return check.CheckResult{
+		ResultCode: check.CheckResultFailure,
+	}
 }
 
 func (c *httpCheckRunner) Validate() error {

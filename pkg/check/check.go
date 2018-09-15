@@ -7,11 +7,12 @@ type CheckRunner interface {
 }
 
 type CheckInput struct {
-	Input interface{}
+	Vars interface{}
 }
 
 type CheckResult struct {
 	ResultCode CheckResultCode
+	Error      error
 }
 
 type CheckResultCode int
