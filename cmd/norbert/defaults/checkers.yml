@@ -1,8 +1,0 @@
-checkers:
-- name: http
-  image: frankh/norbert-http-checker
-
-  vars:
-    expected: [200, 204]
-    timeout: "15s"
-    interval: "2m"

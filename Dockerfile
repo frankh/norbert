@@ -27,11 +27,11 @@ WORKDIR /app
 ENV GO111MODULE=off
 RUN apk add -U ca-certificates curl gcc libc-dev
 
-COPY checkers/ /go/src/github.com/frankh/norbert/checkers/
+COPY checkrunners/ /go/src/github.com/frankh/norbert/checkrunners/
 COPY pkg/ /go/src/github.com/frankh/norbert/pkg/
 
 RUN mkdir ./plugins \
-  && go build -buildmode=plugin -v -o ./plugins/http.so github.com/frankh/norbert/checkers/http
+  && go build -buildmode=plugin -v -o ./plugins/http.so github.com/frankh/norbert/checkrunners/http
 
 COPY --from=frontend-builder /frontend/build /app/public
 COPY --from=backend-builder /go/bin/norbert /usr/bin/norbert

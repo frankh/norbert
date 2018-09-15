@@ -1,0 +1,22 @@
+checkrunners:
+- name: http
+  plugin: github.com/frankh/norbert/checkrunners/http
+
+  vars:
+    expected: [200, 204]
+    timeout: "15s"
+    interval: "2m"
+
+services:
+- name: "Rocketboard"
+
+  vars:
+    url: https://rocketboard.arachnys.com
+
+checks:
+- name: "HTTP Check"
+  service: Rocketboard
+  checkrunner: http
+
+  vars:
+    url: https://rocketboard.arachnys.com/healthcheck

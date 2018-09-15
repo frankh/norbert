@@ -1,7 +1,8 @@
-package checker
+package check
 
-type Checker interface {
+type CheckRunner interface {
 	Run(CheckInput) CheckResult
+	Input() interface{}
 }
 
 type CheckInput struct {

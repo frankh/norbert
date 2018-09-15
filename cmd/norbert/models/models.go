@@ -15,6 +15,13 @@ const (
 	Critical
 )
 
+type CheckRunner struct {
+	Name   string `json:"name"`
+	Plugin string `json:"plugin"`
+
+	Vars map[string]interface{} `json:"vars"`
+}
+
 type Service struct {
 	Name string
 
@@ -28,12 +35,6 @@ type Check struct {
 	Severity Severity
 
 	Source string
-}
-
-type CheckRunner struct {
-	Name string
-
-	DockerImage string
 }
 
 func (t *Severity) UnmarshalGQL(v interface{}) error {
