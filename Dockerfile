@@ -6,6 +6,9 @@ ADD Gopkg.toml Gopkg.lock ./
 RUN dep ensure -v -vendor-only
 RUN go build -v ./vendor/...
 
+ADD pkg/ ./pkg/
+RUN go build -v ./pkg/...
+
 ADD cmd/ ./cmd/
 RUN go install -v ./cmd/...
 
@@ -30,8 +33,9 @@ RUN apk add -U ca-certificates curl gcc libc-dev
 COPY checkrunners/ /go/src/github.com/frankh/norbert/checkrunners/
 COPY pkg/ /go/src/github.com/frankh/norbert/pkg/
 
+# Warmup plugin build caches
 RUN mkdir ./plugins \
-  && go build -buildmode=plugin -v -o ./plugins/http.so github.com/frankh/norbert/checkrunners/http
+  && go build -buildmode=plugin -v github.com/frankh/norbert/checkrunners/http
 
 COPY --from=frontend-builder /frontend/build /app/public
 COPY --from=backend-builder /go/bin/norbert /usr/bin/norbert

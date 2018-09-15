@@ -7,6 +7,14 @@ checkrunners:
     timeout: "15s"
     interval: "2m"
 
+- name: http_auth
+  plugin: github.com/frankh/norbert/checkrunners/http
+
+  vars:
+    expected: [401, 403]
+    timeout: "15s"
+    interval: "2m"
+
 services:
 - name: "Rocketboard"
 
