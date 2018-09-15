@@ -1,6 +1,7 @@
 package plugins
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os/exec"
@@ -11,6 +12,19 @@ import (
 )
 
 var checkrunners map[string]check.CheckRunner
+
+type runnerPlugin struct {
+	check.CheckRunner
+	Vars interface{}
+}
+
+func (r *runnerPlugin) Run(input check.CheckInput) check.CheckResult {
+	return r.CheckRunner.Run(input)
+}
+
+func (r *runnerPlugin) Input() interface{} {
+	return r.Vars
+}
 
 func init() {
 	checkrunners = make(map[string]check.CheckRunner)
@@ -35,7 +49,7 @@ func buildPlugin(name string, pluginUrl string) (string, error) {
 	return dest, nil
 }
 
-func LoadPlugin(name string, pluginUrl string) error {
+func LoadPlugin(name string, pluginUrl string, vars interface{}) error {
 	log.Println("Loading plugin", name)
 	if checkrunners[name] != nil {
 		log.Println("Already loaded plugin: ", name, ", skipping")
@@ -64,14 +78,32 @@ func LoadPlugin(name string, pluginUrl string) error {
 			return err
 		}
 
-		checkrunners[name] = runner
+		err = runner.Validate()
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		input := runner.Input()
+		b, err := json.Marshal(vars)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		err = json.Unmarshal(b, &input)
+		checkrunners[name] = &runnerPlugin{runner, input}
 	}
 
 	return nil
 }
 
 func LoadAll() {
-	for _, runner := range config.GetConfig().CheckRunners {
-		LoadPlugin(runner.Name, runner.Plugin)
+	for _, runner := range config.CheckRunners {
+		LoadPlugin(runner.Name, runner.Plugin, runner.Vars)
 	}
+}
+
+func GetRunner(checkrunner string) check.CheckRunner {
+	return checkrunners[checkrunner]
 }

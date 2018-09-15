@@ -3,6 +3,7 @@ package check
 type CheckRunner interface {
 	Run(CheckInput) CheckResult
 	Input() interface{}
+	Validate() error
 }
 
 type CheckInput struct {

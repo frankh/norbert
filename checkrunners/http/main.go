@@ -37,4 +37,8 @@ func (c *httpCheckRunner) Run(checkInput check.CheckInput) check.CheckResult {
 	return check.CheckResult{check.CheckResultFailure}
 }
 
+func (c *httpCheckRunner) Validate() error {
+	return nil
+}
+
 var CheckRunner httpCheckRunner

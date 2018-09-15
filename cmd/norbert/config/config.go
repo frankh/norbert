@@ -14,17 +14,20 @@ type Config struct {
 	Services     []models.Service     `json:"services"`
 }
 
-var config Config
+var CheckRunners []models.CheckRunner
+var Checks []models.Check
+var Services []models.Service
 
 func init() {
-	box := packr.NewBox("../defaults")
+	var config Config
+	box := packr.NewBox("./defaults")
 
 	err := yaml.Unmarshal(box.Bytes("checkrunners.yml"), &config)
 	if err != nil {
 		log.Fatal("Failed to load default config")
 	}
-}
 
-func GetConfig() Config {
-	return config
+	CheckRunners = config.CheckRunners
+	Checks = config.Checks
+	Services = config.Services
 }

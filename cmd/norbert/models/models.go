@@ -19,13 +19,7 @@ type CheckRunner struct {
 	Name   string `json:"name"`
 	Plugin string `json:"plugin"`
 
-	Vars map[string]interface{} `json:"vars"`
-}
-
-type Service struct {
-	Name string `json:"name"`
-
-	Vars map[string]interface{} `json:"vars"`
+	Vars interface{} `json:"vars"`
 }
 
 type Check struct {
@@ -34,7 +28,13 @@ type Check struct {
 
 	Severity Severity `json:"severity"`
 
-	Vars map[string]interface{} `json:"vars"`
+	Vars interface{} `json:"vars"`
+}
+
+type Service struct {
+	Name string `json:"name"`
+
+	Vars interface{} `json:"vars"`
 }
 
 func (t *Severity) UnmarshalGQL(v interface{}) error {
