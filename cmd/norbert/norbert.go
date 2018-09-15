@@ -16,8 +16,9 @@ func main() {
 	plugins.LoadAll()
 	log.Println(runner.RunCheck(models.Check{
 		CheckRunner: "http",
-		Vars: map[string]string{
-			"url": "https://www.google.com",
+		Vars: map[string]interface{}{
+			"url":      "https://www.google.com",
+			"expected": []int{200},
 		},
 	}))
 

@@ -2,7 +2,14 @@ package check
 
 type CheckRunner interface {
 	Run(CheckInput) CheckResult
+
+	// Return a struct containing the default input variables
+	// required for the runner. The "vars" yaml field will be
+	// deserialized into this struct.
 	Input() interface{}
+
+	// Called at load time, to validate that e.g. required
+	// environment variables are set, or other runtime checks.
 	Validate() error
 }
 
