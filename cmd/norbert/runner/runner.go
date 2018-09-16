@@ -11,7 +11,7 @@ import (
 	"github.com/frankh/norbert/pkg/types"
 )
 
-func RunCheck(c models.Check) (result check.CheckResult) {
+func RunCheck(c *models.Check) (result check.CheckResult) {
 	startTime := time.Now()
 	defer func() {
 		endTime := time.Now()

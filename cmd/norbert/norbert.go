@@ -1,15 +1,38 @@
 package main
 
 import (
+	"log"
+	"os"
+
 	"github.com/99designs/gqlgen/handler"
 	"github.com/frankh/norbert/cmd/norbert/graph"
 	"github.com/frankh/norbert/cmd/norbert/plugins"
+	// _ "github.com/frankh/norbert/cmd/norbert/runner"
+	"github.com/frankh/norbert/cmd/norbert/repository"
+	"github.com/frankh/norbert/pkg/leader"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
 
 func main() {
 	plugins.LoadAll()
+
+	dbURI := os.Getenv("NORBERT_DATABASE_URI")
+	if dbURI == "" {
+		dbURI = "postgres://postgres@localhost/norbert?sslmode=disable"
+	}
+
+	db, err := repository.NewRepository(dbURI)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	elector, err := leader.NewElector("leases", db.DB.DB)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	elector.Start()
 
 	// Echo instance
 	e := echo.New()

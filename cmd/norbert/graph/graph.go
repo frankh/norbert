@@ -23,7 +23,12 @@ func (r *resolver) Service() ServiceResolver {
 }
 
 func (r *resolver) Services(ctx context.Context) ([]models.Service, error) {
-	return config.Services, nil
+	services := make([]models.Service, 0)
+
+	for _, service := range config.Services {
+		services = append(services, *service)
+	}
+	return services, nil
 }
 
 func (r *resolver) Checks(ctx context.Context, svc *models.Service) ([]models.Check, error) {

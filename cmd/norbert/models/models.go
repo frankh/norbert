@@ -1,7 +1,9 @@
 package models
 
 import (
+	"encoding/hex"
 	"fmt"
+	"hash/fnv"
 	"io"
 	"strconv"
 )
@@ -18,6 +20,7 @@ const (
 type CheckRunner struct {
 	Name   string `json:"name"`
 	Plugin string `json:"plugin"`
+	Cron   string `json:"cron"`
 
 	Vars interface{} `json:"vars"`
 }
@@ -27,10 +30,17 @@ type Check struct {
 
 	Service     string `json:"service"`
 	CheckRunner string `json:"checkrunner"`
+	Cron        string `json:"cron"`
 
 	Severity Severity `json:"severity"`
 
 	Vars interface{} `json:"vars"`
+}
+
+func (c *Check) Id() string {
+	hash := fnv.New32()
+	hash.Write([]byte(c.Name + c.Service))
+	return hex.EncodeToString(hash.Sum(nil))
 }
 
 type Service struct {

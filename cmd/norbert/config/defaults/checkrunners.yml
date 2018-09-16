@@ -1,19 +1,19 @@
 checkrunners:
 - name: http
   plugin: github.com/frankh/norbert/checkrunners/http
+  cron: "@every 10s"
 
   vars:
     expected: [200, 204]
     timeout: "15s"
-    interval: "2m"
 
-- name: http_auth
-  plugin: github.com/frankh/norbert/checkrunners/http
+# - name: http_auth
+#   plugin: github.com/frankh/norbert/checkrunners/http
+#   cron: "@every 2m"
 
-  vars:
-    expected: [401, 403]
-    timeout: "15s"
-    interval: "2m"
+#   vars:
+#     expected: [401, 403]
+#     timeout: "15s"
 
 services:
 - name: "Rocketboard"
