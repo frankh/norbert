@@ -27,7 +27,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	elector, err := leader.NewElector("leases", db.DB.DB)
+	elector, err := leader.NewElector(db.DB.DB, leader.DefaultConfig)
 	if err != nil {
 		log.Fatal(err)
 	}

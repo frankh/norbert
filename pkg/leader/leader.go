@@ -31,16 +31,18 @@ type LeaderElector interface {
 }
 
 type Config struct {
+	Table         string
 	LeaseDuration time.Duration
 }
 
-var defaultConfig Config = Config{
+var DefaultConfig Config = Config{
+	Table:         "leases",
 	LeaseDuration: 10 * time.Second,
 }
 
-func NewElector(table string, db *sql.DB) (LeaderElector, error) {
+func NewElector(db *sql.DB, config Config) (LeaderElector, error) {
 	_, err := db.Exec(`
-    CREATE TABLE IF NOT EXISTS "` + table + `" (
+    CREATE TABLE IF NOT EXISTS "` + config.Table + `" (
       singleton TEXT UNIQUE,
       id TEXT,
       lease_end TIMESTAMP
@@ -54,8 +56,7 @@ func NewElector(table string, db *sql.DB) (LeaderElector, error) {
 
 	return &leaderElector{
 		id:     uuid.New().String(),
-		table:  table,
-		config: defaultConfig,
+		config: config,
 		db:     db,
 	}, nil
 }
@@ -101,7 +102,7 @@ func (e *leaderElector) elect() error {
 
 	var l lease
 
-	row := tx.QueryRow(`SELECT id, lease_end, CURRENT_TIMESTAMP FROM "` + e.table + `" WHERE singleton='leader'`)
+	row := tx.QueryRow(`SELECT id, lease_end, CURRENT_TIMESTAMP FROM "` + e.config.Table + `" WHERE singleton='leader'`)
 	err = row.Scan(&l.id, &l.leaseEnd, &l.dbTime)
 	if err != nil && err != sql.ErrNoRows {
 		log.Println("Error selecting current lease: ", err)
@@ -111,7 +112,7 @@ func (e *leaderElector) elect() error {
 
 	if err == sql.ErrNoRows || l.id == e.id || l.dbTime.After(l.leaseEnd) {
 		_, err := tx.Exec(`
-      INSERT INTO "`+e.table+`" (singleton, id, lease_end)
+      INSERT INTO "`+e.config.Table+`" (singleton, id, lease_end)
       VALUES ('leader', $1, $2)
       ON CONFLICT(singleton) DO UPDATE SET id=EXCLUDED.id, lease_end=EXCLUDED.lease_end
     `, e.id, l.dbTime.Add(e.config.LeaseDuration))
