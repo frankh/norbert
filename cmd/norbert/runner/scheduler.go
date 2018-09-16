@@ -2,65 +2,78 @@ package runner
 
 import (
 	"log"
-	// "sync"
-	"fmt"
-	// "time"
+	"time"
 
-	"github.com/frankh/norbert/cmd/norbert/config"
 	"github.com/frankh/norbert/cmd/norbert/models"
-	"github.com/gocraft/work"
-	"github.com/gomodule/redigo/redis"
+	"github.com/frankh/norbert/pkg/leader"
+	"github.com/nats-io/go-nats"
+	"github.com/vmihailenco/msgpack"
+	"gopkg.in/robfig/cron.v2"
 )
 
-var redisPool = &redis.Pool{
-	MaxActive: 5,
-	MaxIdle:   5,
-	Wait:      true,
-	Dial: func() (redis.Conn, error) {
-		return redis.Dial("tcp", ":6379")
-	},
+type Scheduler interface {
+	Stop()
 }
 
-var pool *work.WorkerPool
-
-type Context struct {
-	check *models.Check
+type scheduler struct {
+	nc      *nats.Conn
+	elector leader.LeaderElector
+	cron    *cron.Cron
 }
 
-func (c *Context) Log(job *work.Job, next work.NextMiddlewareFunc) error {
-	fmt.Println("Starting job: ", job.Name)
-	return next()
-}
+func Start(nc *nats.Conn, elector leader.LeaderElector, checks []*models.Check) Scheduler {
+	c := cron.New()
+	s := scheduler{nc, elector, c}
 
-func init() {
-	pool = work.NewWorkerPool(Context{}, 10, "norbert", redisPool)
-
-	pool.Middleware((*Context).Log)
-	checks := make([]*models.Check, 0)
-	for _, c := range config.ChecksById {
-		checks = append(checks, c)
-	}
-	ScheduleCheckJobs(checks)
-	pool.Start()
-}
-
-func ScheduleCheckJobs(checks []*models.Check) {
 	for _, check := range checks {
-		pool.Job("run_check_"+check.Id(), (*Context).TestJob)
-		pool.PeriodicallyEnqueue(check.Cron, "run_check_"+check.Id())
-		log.Println("Enqueuing run_check_" + check.Id())
+		checkCopy := check
+		c.AddFunc(check.Cron, func() { triggerCheck(s, checkCopy) })
 	}
+
+	c.Start()
+	go s.listenForWork()
+	return &s
 }
 
-func (c *Context) TestJob(job *work.Job) error {
-	log.Println("running")
-	return fmt.Errorf("Failed")
+func (s *scheduler) Stop() {
+	s.cron.Stop()
 }
 
-func RunCheckJob(check *models.Check) func(job *work.Job) error {
-	return func(job *work.Job) error {
-		cr := RunCheck(check)
-		log.Println("Ran check", cr)
-		return nil
+func (s *scheduler) listenForWork() {
+	requestChan := make(chan *nats.Msg, 100)
+
+	sub, err := s.nc.ChanQueueSubscribe("check_requests", "request_workers", requestChan)
+	if err != nil {
+		log.Fatal("Failed to subscribe for work:", sub)
+	}
+
+	for {
+		select {
+		case msg := <-requestChan:
+			// Notify that we've picked up the work
+			s.nc.Publish(msg.Reply, nil)
+			var check models.Check
+			err := msgpack.Unmarshal(msg.Data, &check)
+			if err != nil {
+				log.Println("Failed to read check message")
+			} else {
+				RunCheck(&check)
+			}
+		}
+	}
+
+}
+
+func triggerCheck(s scheduler, check *models.Check) {
+	if !s.elector.IsLeader() {
+		log.Println("Not leader, not scheduling")
+		return
+	}
+
+	request, _ := msgpack.Marshal(check)
+
+	_, err := s.nc.Request("check_requests", request, 500*time.Millisecond)
+	if err != nil {
+		log.Println("Check request not picked up")
 	}
 }

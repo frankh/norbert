@@ -12,11 +12,13 @@ import (
 )
 
 func RunCheck(c *models.Check) (result check.CheckResult) {
+	log.Println("Starting check", c.Name)
 	startTime := time.Now()
 	defer func() {
 		endTime := time.Now()
 		duration := endTime.Sub(startTime)
 		result.Duration = types.Duration{duration}
+		log.Println("Finished check", c.Name, ":", result.ResultCode.String())
 	}()
 
 	cr := plugins.GetRunner(c.CheckRunner)
@@ -25,9 +27,8 @@ func RunCheck(c *models.Check) (result check.CheckResult) {
 		result.ResultCode = check.CheckResultError
 		return
 	}
-	vars := cr.Vars()
-	log.Println(vars)
 
+	vars := cr.Vars()
 	if c.Vars != nil {
 		b, err := json.Marshal(c.Vars)
 		if err != nil {

@@ -5,10 +5,11 @@ import (
 	"os"
 
 	"github.com/99designs/gqlgen/handler"
+	"github.com/frankh/norbert/cmd/norbert/config"
 	"github.com/frankh/norbert/cmd/norbert/graph"
 	"github.com/frankh/norbert/cmd/norbert/plugins"
-	// _ "github.com/frankh/norbert/cmd/norbert/runner"
 	"github.com/frankh/norbert/cmd/norbert/repository"
+	"github.com/frankh/norbert/cmd/norbert/runner"
 	"github.com/frankh/norbert/pkg/leader"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -16,6 +17,7 @@ import (
 
 func main() {
 	plugins.LoadAll()
+	InitMessageQueue()
 
 	dbURI := os.Getenv("NORBERT_DATABASE_URI")
 	if dbURI == "" {
@@ -31,8 +33,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	elector.Start()
+	runner.Start(nc, elector, config.Loaded.Checks)
 
 	// Echo instance
 	e := echo.New()

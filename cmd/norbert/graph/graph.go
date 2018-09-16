@@ -32,5 +32,10 @@ func (r *resolver) Services(ctx context.Context) ([]models.Service, error) {
 }
 
 func (r *resolver) Checks(ctx context.Context, svc *models.Service) ([]models.Check, error) {
-	return config.Checks[svc.Name], nil
+	checks := make([]models.Check, 0)
+
+	for _, check := range config.Checks[svc.Name] {
+		checks = append(checks, *check)
+	}
+	return checks, nil
 }
