@@ -27,6 +27,8 @@ type Service {
 }
 
 type Check {
+  name: String!
+
   severity: Severity!
 }
 

@@ -40,6 +40,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Check struct {
+		Name     func(childComplexity int) int
 		Severity func(childComplexity int) int
 	}
 
@@ -124,6 +125,13 @@ func (e *executableSchema) Schema() *ast.Schema {
 
 func (e *executableSchema) Complexity(typeName, field string, childComplexity int, rawArgs map[string]interface{}) (int, bool) {
 	switch typeName + "." + field {
+
+	case "Check.name":
+		if e.complexity.Check.Name == nil {
+			break
+		}
+
+		return e.complexity.Check.Name(childComplexity), true
 
 	case "Check.severity":
 		if e.complexity.Check.Severity == nil {
@@ -247,6 +255,11 @@ func (ec *executionContext) _Check(ctx context.Context, sel ast.SelectionSet, ob
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Check")
+		case "name":
+			out.Values[i] = ec._Check_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "severity":
 			out.Values[i] = ec._Check_severity(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -261,6 +274,28 @@ func (ec *executionContext) _Check(ctx context.Context, sel ast.SelectionSet, ob
 		return graphql.Null
 	}
 	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Check_name(ctx context.Context, field graphql.CollectedField, obj *models.Check) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "Check",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(ctx context.Context) (interface{}, error) {
+		return obj.Name, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	return graphql.MarshalString(res)
 }
 
 // nolint: vetshadow
@@ -1947,6 +1982,8 @@ type Service {
 }
 
 type Check {
+  name: String!
+
   severity: Severity!
 }
 

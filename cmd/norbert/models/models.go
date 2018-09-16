@@ -23,6 +23,8 @@ type CheckRunner struct {
 }
 
 type Check struct {
+	Name string `json:"name"`
+
 	Service     string `json:"service"`
 	CheckRunner string `json:"checkrunner"`
 

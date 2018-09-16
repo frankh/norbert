@@ -5,6 +5,11 @@ export const GET_SERVICES = gql`
         services {
           name
           url
+
+          checks {
+            name
+            severity
+          }
         }
     }
 `;

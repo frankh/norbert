@@ -1,6 +1,6 @@
 import React from 'react';
 import { Query, graphql } from "react-apollo";
-import { List } from "antd";
+import { List, Icon } from "antd";
 import './App.css';
 
 import { GET_SERVICES } from "../queries";
@@ -15,7 +15,9 @@ class ServiceListItem extends React.PureComponent {
                     <List.Item.Meta
                       title={service.name}
                       description={<a href={service.url}>{service.url}</a>}
+
                     />
+                    <Icon type="undo" theme="outlined" spin className="reverse"/>
                 </List.Item>
             </div>
         )

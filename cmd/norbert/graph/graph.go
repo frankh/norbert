@@ -27,5 +27,5 @@ func (r *resolver) Services(ctx context.Context) ([]models.Service, error) {
 }
 
 func (r *resolver) Checks(ctx context.Context, svc *models.Service) ([]models.Check, error) {
-	return nil, nil
+	return config.Checks[svc.Name], nil
 }

@@ -22,7 +22,11 @@
   font-size: large;
 }
 
-@keyframes App-logo-spin {
+@keyframes loadingCircleReverse {
   from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  to { transform: rotate(-360deg); }
+}
+
+.reverse .anticon-spin {
+  animation: loadingCircleReverse 1s infinite linear;
 }

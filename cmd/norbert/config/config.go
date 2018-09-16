@@ -15,7 +15,7 @@ type Config struct {
 }
 
 var CheckRunners []models.CheckRunner
-var Checks []models.Check
+var Checks map[string][]models.Check
 var Services []models.Service
 
 func init() {
@@ -24,10 +24,25 @@ func init() {
 
 	err := yaml.Unmarshal(box.Bytes("checkrunners.yml"), &config)
 	if err != nil {
-		log.Fatal("Failed to load default config")
+		log.Fatal("Failed to load default config: ", err)
 	}
 
 	CheckRunners = config.CheckRunners
-	Checks = config.Checks
 	Services = config.Services
+
+	Checks = make(map[string][]models.Check)
+
+	for _, service := range Services {
+		Checks[service.Name] = make([]models.Check, 0)
+	}
+
+	for _, check := range config.Checks {
+		serviceName := check.Service
+		if Checks[serviceName] == nil {
+			log.Println("service ", serviceName, " not found for check ", check.Name)
+		} else {
+			Checks[serviceName] = append(Checks[serviceName], check)
+		}
+
+	}
 }

@@ -23,6 +23,7 @@ checks:
 - name: "HTTP Check"
   service: Rocketboard
   checkrunner: http
+  severity: Info
 
   vars:
     url: https://rocketboard.arachnys.com/healthcheck
