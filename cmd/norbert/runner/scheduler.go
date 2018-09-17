@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/frankh/norbert/cmd/norbert/models"
+	"github.com/frankh/norbert/cmd/norbert/repository"
 	"github.com/frankh/norbert/pkg/leader"
 	"github.com/nats-io/go-nats"
 	"github.com/vmihailenco/msgpack"
@@ -19,11 +20,12 @@ type scheduler struct {
 	nc      *nats.Conn
 	elector leader.LeaderElector
 	cron    *cron.Cron
+	db      repository.Repository
 }
 
-func Start(nc *nats.Conn, elector leader.LeaderElector, checks []*models.Check) Scheduler {
+func Start(nc *nats.Conn, elector leader.LeaderElector, db repository.Repository, checks []*models.Check) Scheduler {
 	c := cron.New()
-	s := scheduler{nc, elector, c}
+	s := scheduler{nc, elector, c, db}
 
 	for _, check := range checks {
 		checkCopy := check
@@ -55,9 +57,12 @@ func (s *scheduler) listenForWork() {
 			var check models.Check
 			err := msgpack.Unmarshal(msg.Data, &check)
 			if err != nil {
-				log.Println("Failed to read check message")
+				log.Println("Failed to read check message:", err)
 			} else {
-				RunCheck(&check)
+				result := RunCheck(&check)
+				if err := s.db.SaveCheckResult(&result); err != nil {
+					log.Println("Couldn't save check result:", err)
+				}
 			}
 		}
 	}

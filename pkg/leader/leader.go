@@ -72,7 +72,11 @@ func (e *leaderElector) Start() {
 		for {
 			select {
 			case <-ticker.C:
+				wasLeader := e.IsLeader()
 				e.elect()
+				if !wasLeader && e.IsLeader() {
+					log.Println("Elected leader")
+				}
 			}
 		}
 	}()
@@ -121,6 +125,10 @@ func (e *leaderElector) elect() error {
 			log.Println("Error updating lease: ", err)
 			return err
 		}
+
+		// Re-fetch updated lease
+		row := tx.QueryRow(`SELECT id, lease_end, CURRENT_TIMESTAMP FROM "` + e.config.Table + `" WHERE singleton='leader'`)
+		row.Scan(&l.id, &l.leaseEnd, &l.dbTime)
 	}
 
 	e.currentLease = &l

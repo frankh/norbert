@@ -8,16 +8,15 @@ import (
 	"github.com/frankh/norbert/cmd/norbert/models"
 	"github.com/frankh/norbert/cmd/norbert/plugins"
 	"github.com/frankh/norbert/pkg/check"
-	"github.com/frankh/norbert/pkg/types"
 )
 
-func RunCheck(c *models.Check) (result check.CheckResult) {
+func RunCheck(c *models.Check) (result models.CheckResult) {
 	log.Println("Starting check", c.Name)
+	result.CheckId = c.Id()
 	startTime := time.Now()
 	defer func() {
-		endTime := time.Now()
-		duration := endTime.Sub(startTime)
-		result.Duration = types.Duration{duration}
+		result.StartTime = startTime
+		result.EndTime = time.Now()
 		log.Println("Finished check", c.Name, ":", result.ResultCode.String())
 	}()
 
@@ -34,7 +33,7 @@ func RunCheck(c *models.Check) (result check.CheckResult) {
 		if err != nil {
 			log.Println(err)
 			result.ResultCode = check.CheckResultError
-			result.Error = err
+			result.ErrorMsg = err.Error()
 			return
 		}
 
@@ -42,10 +41,17 @@ func RunCheck(c *models.Check) (result check.CheckResult) {
 		if err != nil {
 			log.Println(err)
 			result.ResultCode = check.CheckResultError
-			result.Error = err
+			result.ErrorMsg = err.Error()
 			return
 		}
 	}
 
-	return cr.Run(check.CheckInput{vars})
+	checkResult := cr.Run(check.CheckInput{vars})
+
+	if checkResult.Error != nil {
+		result.ErrorMsg = checkResult.Error.Error()
+	}
+	result.ResultCode = checkResult.ResultCode
+
+	return result
 }

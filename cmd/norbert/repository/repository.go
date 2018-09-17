@@ -5,13 +5,32 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/frankh/norbert/cmd/norbert/models"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
 type sqlRepository struct {
-	DB *sqlx.DB
+	*sqlx.DB
 }
+
+type Repository interface {
+	SaveCheckResult(*models.CheckResult) error
+	CheckResults(string) ([]*models.CheckResult, error)
+}
+
+var schema = `
+CREATE TABLE IF NOT EXISTS check_results (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  checkid TEXT,
+  starttime TIMESTAMP,
+  endtime TIMESTAMP,
+  resultcode INT,
+  errormsg TEXT
+);
+
+CREATE INDEX IF NOT EXISTS check_results_starttime ON check_results(starttime);
+`
 
 func NewRepository(dbURI string) (*sqlRepository, error) {
 	url, err := url.Parse(dbURI)
@@ -31,6 +50,24 @@ func NewRepository(dbURI string) (*sqlRepository, error) {
 	if err != nil {
 		return nil, err
 	}
+	_, err = db.Exec(schema)
+	if err != nil {
+		return nil, err
+	}
 
 	return &sqlRepository{db}, nil
+}
+
+func (db *sqlRepository) SaveCheckResult(result *models.CheckResult) error {
+	_, err := db.NamedExec(`INSERT INTO check_results
+      (checkid, starttime, endtime, resultcode, errormsg)
+    VALUES (:checkid, :starttime, :endtime, :resultcode, :errormsg)
+  `, result)
+	return err
+}
+
+func (db *sqlRepository) CheckResults(checkId string) ([]*models.CheckResult, error) {
+	results := []*models.CheckResult{}
+	err := db.Select(&results, "SELECT * FROM check_results WHERE checkId=$1 ORDER BY starttime ASC", checkId)
+	return results, err
 }

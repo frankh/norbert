@@ -21,7 +21,7 @@ func main() {
 
 	dbURI := os.Getenv("NORBERT_DATABASE_URI")
 	if dbURI == "" {
-		dbURI = "postgres://postgres@localhost/norbert?sslmode=disable"
+		dbURI = "postgres://root@localhost/norbert?sslmode=disable"
 	}
 
 	db, err := repository.NewRepository(dbURI)
@@ -34,7 +34,7 @@ func main() {
 		log.Fatal(err)
 	}
 	elector.Start()
-	runner.Start(nc, elector, config.Loaded.Checks)
+	runner.Start(nc, elector, db, config.Loaded.Checks)
 
 	// Echo instance
 	e := echo.New()
@@ -49,7 +49,7 @@ func main() {
 
 	e.Match([]string{"GET", "POST"}, "/query", echo.WrapHandler(handler.GraphQL(
 		graph.NewExecutableSchema(graph.Config{
-			Resolvers: graph.NewResolver(),
+			Resolvers: graph.NewResolver(db),
 		}),
 	)))
 

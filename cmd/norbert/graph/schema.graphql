@@ -1,6 +1,5 @@
 schema {
     query: RootQuery
-    mutation: RootMutation
 }
 
 type RootQuery {
@@ -19,6 +18,12 @@ enum Severity {
     Critical
 }
 
+enum CheckResultCode {
+    CheckResultSuccess
+    CheckResultFailure
+    CheckResultError
+}
+
 type Service {
     name: String!
     url: String!
@@ -27,9 +32,21 @@ type Service {
 }
 
 type Check {
-  name: String!
+    id: String!
+    name: String!
 
-  severity: Severity!
+    severity: Severity!
+
+    results: [CheckResult]
+}
+
+type CheckResult {
+    id: String!
+    checkId: String!
+    startTime: Time!
+    endTime: Time!
+    resultCode: CheckResultCode!
+    errorMsg: String!
 }
 
 scalar Time

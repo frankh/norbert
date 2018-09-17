@@ -5,20 +5,26 @@ import (
 
 	"github.com/frankh/norbert/cmd/norbert/config"
 	"github.com/frankh/norbert/cmd/norbert/models"
+	"github.com/frankh/norbert/cmd/norbert/repository"
 )
 
 type resolver struct {
+	db repository.Repository
 }
 
 func (r *resolver) RootQuery() RootQueryResolver {
 	return r
 }
 
-func NewResolver() ResolverRoot {
-	return &resolver{}
+func NewResolver(db repository.Repository) ResolverRoot {
+	return &resolver{db}
 }
 
 func (r *resolver) Service() ServiceResolver {
+	return r
+}
+
+func (r *resolver) Check() CheckResolver {
 	return r
 }
 
@@ -38,4 +44,8 @@ func (r *resolver) Checks(ctx context.Context, svc *models.Service) ([]models.Ch
 		checks = append(checks, *check)
 	}
 	return checks, nil
+}
+
+func (r *resolver) Results(ctx context.Context, check *models.Check) ([]*models.CheckResult, error) {
+	return r.db.CheckResults(check.Id())
 }

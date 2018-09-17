@@ -7,10 +7,12 @@ import (
 	context "context"
 	strconv "strconv"
 	sync "sync"
+	time "time"
 
 	graphql "github.com/99designs/gqlgen/graphql"
 	introspection "github.com/99designs/gqlgen/graphql/introspection"
 	models "github.com/frankh/norbert/cmd/norbert/models"
+	check "github.com/frankh/norbert/pkg/check"
 	gqlparser "github.com/vektah/gqlparser"
 	ast "github.com/vektah/gqlparser/ast"
 )
@@ -31,6 +33,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Check() CheckResolver
 	RootQuery() RootQueryResolver
 	Service() ServiceResolver
 }
@@ -40,8 +43,19 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Check struct {
+		Id       func(childComplexity int) int
 		Name     func(childComplexity int) int
 		Severity func(childComplexity int) int
+		Results  func(childComplexity int) int
+	}
+
+	CheckResult struct {
+		Id         func(childComplexity int) int
+		CheckId    func(childComplexity int) int
+		StartTime  func(childComplexity int) int
+		EndTime    func(childComplexity int) int
+		ResultCode func(childComplexity int) int
+		ErrorMsg   func(childComplexity int) int
 	}
 
 	RootMutation struct {
@@ -61,6 +75,9 @@ type ComplexityRoot struct {
 	}
 }
 
+type CheckResolver interface {
+	Results(ctx context.Context, obj *models.Check) ([]*models.CheckResult, error)
+}
 type RootQueryResolver interface {
 	Services(ctx context.Context) ([]models.Service, error)
 }
@@ -126,6 +143,13 @@ func (e *executableSchema) Schema() *ast.Schema {
 func (e *executableSchema) Complexity(typeName, field string, childComplexity int, rawArgs map[string]interface{}) (int, bool) {
 	switch typeName + "." + field {
 
+	case "Check.id":
+		if e.complexity.Check.Id == nil {
+			break
+		}
+
+		return e.complexity.Check.Id(childComplexity), true
+
 	case "Check.name":
 		if e.complexity.Check.Name == nil {
 			break
@@ -139,6 +163,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Check.Severity(childComplexity), true
+
+	case "Check.results":
+		if e.complexity.Check.Results == nil {
+			break
+		}
+
+		return e.complexity.Check.Results(childComplexity), true
+
+	case "CheckResult.id":
+		if e.complexity.CheckResult.Id == nil {
+			break
+		}
+
+		return e.complexity.CheckResult.Id(childComplexity), true
+
+	case "CheckResult.checkId":
+		if e.complexity.CheckResult.CheckId == nil {
+			break
+		}
+
+		return e.complexity.CheckResult.CheckId(childComplexity), true
+
+	case "CheckResult.startTime":
+		if e.complexity.CheckResult.StartTime == nil {
+			break
+		}
+
+		return e.complexity.CheckResult.StartTime(childComplexity), true
+
+	case "CheckResult.endTime":
+		if e.complexity.CheckResult.EndTime == nil {
+			break
+		}
+
+		return e.complexity.CheckResult.EndTime(childComplexity), true
+
+	case "CheckResult.resultCode":
+		if e.complexity.CheckResult.ResultCode == nil {
+			break
+		}
+
+		return e.complexity.CheckResult.ResultCode(childComplexity), true
+
+	case "CheckResult.errorMsg":
+		if e.complexity.CheckResult.ErrorMsg == nil {
+			break
+		}
+
+		return e.complexity.CheckResult.ErrorMsg(childComplexity), true
 
 	case "RootQuery.services":
 		if e.complexity.RootQuery.Services == nil {
@@ -189,19 +262,7 @@ func (e *executableSchema) Query(ctx context.Context, op *ast.OperationDefinitio
 }
 
 func (e *executableSchema) Mutation(ctx context.Context, op *ast.OperationDefinition) *graphql.Response {
-	ec := executionContext{graphql.GetRequestContext(ctx), e}
-
-	buf := ec.RequestMiddleware(ctx, func(ctx context.Context) []byte {
-		data := ec._RootMutation(ctx, op.SelectionSet)
-		var buf bytes.Buffer
-		data.MarshalGQL(&buf)
-		return buf.Bytes()
-	})
-
-	return &graphql.Response{
-		Data:   buf,
-		Errors: ec.Errors,
-	}
+	return graphql.ErrorResponse(ctx, "mutations are not supported")
 }
 
 func (e *executableSchema) Subscription(ctx context.Context, op *ast.OperationDefinition) func() *graphql.Response {
@@ -247,6 +308,7 @@ var checkImplementors = []string{"Check"}
 func (ec *executionContext) _Check(ctx context.Context, sel ast.SelectionSet, obj *models.Check) graphql.Marshaler {
 	fields := graphql.CollectFields(ctx, sel, checkImplementors)
 
+	var wg sync.WaitGroup
 	out := graphql.NewOrderedMap(len(fields))
 	invalid := false
 	for i, field := range fields {
@@ -255,6 +317,11 @@ func (ec *executionContext) _Check(ctx context.Context, sel ast.SelectionSet, ob
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Check")
+		case "id":
+			out.Values[i] = ec._Check_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "name":
 			out.Values[i] = ec._Check_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -265,15 +332,43 @@ func (ec *executionContext) _Check(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "results":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Check_results(ctx, field, obj)
+				wg.Done()
+			}(i, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-
+	wg.Wait()
 	if invalid {
 		return graphql.Null
 	}
 	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Check_id(ctx context.Context, field graphql.CollectedField, obj *models.Check) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "Check",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(ctx context.Context) (interface{}, error) {
+		return obj.Id(), nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	return graphql.MarshalString(res)
 }
 
 // nolint: vetshadow
@@ -320,15 +415,254 @@ func (ec *executionContext) _Check_severity(ctx context.Context, field graphql.C
 	return res
 }
 
+// nolint: vetshadow
+func (ec *executionContext) _Check_results(ctx context.Context, field graphql.CollectedField, obj *models.Check) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "Check",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(ctx context.Context) (interface{}, error) {
+		return ec.resolvers.Check().Results(ctx, obj)
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*models.CheckResult)
+	rctx.Result = res
+
+	arr1 := make(graphql.Array, len(res))
+	var wg sync.WaitGroup
+
+	isLen1 := len(res) == 1
+	if !isLen1 {
+		wg.Add(len(res))
+	}
+
+	for idx1 := range res {
+		idx1 := idx1
+		rctx := &graphql.ResolverContext{
+			Index:  &idx1,
+			Result: res[idx1],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(idx1 int) {
+			if !isLen1 {
+				defer wg.Done()
+			}
+			arr1[idx1] = func() graphql.Marshaler {
+
+				if res[idx1] == nil {
+					return graphql.Null
+				}
+
+				return ec._CheckResult(ctx, field.Selections, res[idx1])
+			}()
+		}
+		if isLen1 {
+			f(idx1)
+		} else {
+			go f(idx1)
+		}
+
+	}
+	wg.Wait()
+	return arr1
+}
+
+var checkResultImplementors = []string{"CheckResult"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _CheckResult(ctx context.Context, sel ast.SelectionSet, obj *models.CheckResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, checkResultImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CheckResult")
+		case "id":
+			out.Values[i] = ec._CheckResult_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "checkId":
+			out.Values[i] = ec._CheckResult_checkId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "startTime":
+			out.Values[i] = ec._CheckResult_startTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "endTime":
+			out.Values[i] = ec._CheckResult_endTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "resultCode":
+			out.Values[i] = ec._CheckResult_resultCode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "errorMsg":
+			out.Values[i] = ec._CheckResult_errorMsg(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _CheckResult_id(ctx context.Context, field graphql.CollectedField, obj *models.CheckResult) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "CheckResult",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(ctx context.Context) (interface{}, error) {
+		return obj.Id, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	return graphql.MarshalString(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _CheckResult_checkId(ctx context.Context, field graphql.CollectedField, obj *models.CheckResult) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "CheckResult",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(ctx context.Context) (interface{}, error) {
+		return obj.CheckId, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	return graphql.MarshalString(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _CheckResult_startTime(ctx context.Context, field graphql.CollectedField, obj *models.CheckResult) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "CheckResult",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(ctx context.Context) (interface{}, error) {
+		return obj.StartTime, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	rctx.Result = res
+	return graphql.MarshalTime(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _CheckResult_endTime(ctx context.Context, field graphql.CollectedField, obj *models.CheckResult) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "CheckResult",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(ctx context.Context) (interface{}, error) {
+		return obj.EndTime, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	rctx.Result = res
+	return graphql.MarshalTime(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _CheckResult_resultCode(ctx context.Context, field graphql.CollectedField, obj *models.CheckResult) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "CheckResult",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(ctx context.Context) (interface{}, error) {
+		return obj.ResultCode, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(check.CheckResultCode)
+	rctx.Result = res
+	return res
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _CheckResult_errorMsg(ctx context.Context, field graphql.CollectedField, obj *models.CheckResult) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "CheckResult",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(ctx context.Context) (interface{}, error) {
+		return obj.ErrorMsg, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	return graphql.MarshalString(res)
+}
+
 var rootMutationImplementors = []string{"RootMutation"}
 
 // nolint: gocyclo, errcheck, gas, goconst
-func (ec *executionContext) _RootMutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
+func (ec *executionContext) _RootMutation(ctx context.Context, sel ast.SelectionSet, obj *RootMutation) graphql.Marshaler {
 	fields := graphql.CollectFields(ctx, sel, rootMutationImplementors)
-
-	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
-		Object: "RootMutation",
-	})
 
 	out := graphql.NewOrderedMap(len(fields))
 	invalid := false
@@ -1955,7 +2289,6 @@ func (ec *executionContext) introspectType(name string) *introspection.Type {
 var parsedSchema = gqlparser.MustLoadSchema(
 	&ast.Source{Name: "graph/schema.graphql", Input: `schema {
     query: RootQuery
-    mutation: RootMutation
 }
 
 type RootQuery {
@@ -1974,6 +2307,12 @@ enum Severity {
     Critical
 }
 
+enum CheckResultCode {
+    CheckResultSuccess
+    CheckResultFailure
+    CheckResultError
+}
+
 type Service {
     name: String!
     url: String!
@@ -1982,9 +2321,21 @@ type Service {
 }
 
 type Check {
-  name: String!
+    id: String!
+    name: String!
 
-  severity: Severity!
+    severity: Severity!
+
+    results: [CheckResult]
+}
+
+type CheckResult {
+    id: String!
+    checkId: String!
+    startTime: Time!
+    endTime: Time!
+    resultCode: CheckResultCode!
+    errorMsg: String!
 }
 
 scalar Time

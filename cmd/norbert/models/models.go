@@ -6,6 +6,9 @@ import (
 	"hash/fnv"
 	"io"
 	"strconv"
+	"time"
+
+	"github.com/frankh/norbert/pkg/check"
 )
 
 type Severity int
@@ -23,6 +26,17 @@ type CheckRunner struct {
 	Cron   string `json:"cron"`
 
 	Vars interface{} `json:"vars"`
+}
+
+type CheckResult struct {
+	Id      string
+	CheckId string
+
+	ResultCode check.CheckResultCode
+	ErrorMsg   string
+
+	StartTime time.Time
+	EndTime   time.Time
 }
 
 type Check struct {

@@ -1,7 +1,9 @@
 package check
 
 import (
-	"github.com/frankh/norbert/pkg/types"
+	"fmt"
+	"io"
+	"strconv"
 )
 
 type CheckRunner interface {
@@ -24,7 +26,6 @@ type CheckInput struct {
 type CheckResult struct {
 	ResultCode CheckResultCode
 	Error      error
-	Duration   types.Duration
 }
 
 type CheckResultCode int
@@ -34,3 +35,18 @@ const (
 	CheckResultFailure
 	CheckResultError
 )
+
+func (t *CheckResultCode) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	var err error
+	*t, err = CheckResultCodeString(str)
+	return err
+}
+
+func (t CheckResultCode) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(t.String()))
+}
