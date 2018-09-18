@@ -7,8 +7,8 @@ import CheckPage from './CheckPage.js';
 
 import { GET_SERVICES } from "../queries";
 
-import './App.css';
 import "antd/dist/antd.css";
+import './App.css';
 
 const { Header, Footer, Content } = Layout;
 

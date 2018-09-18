@@ -1,0 +1,9 @@
+.ant-list-item-meta-avatar {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.ant-list-item-meta {
+  align-items: stretch;
+}

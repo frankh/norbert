@@ -2,7 +2,6 @@ import React from 'react';
 import { Query } from "react-apollo";
 import { List, Icon } from "antd";
 import { formatRelative } from 'date-fns'
-import './App.css';
 
 import { GET_CHECK } from "../queries";
 

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Query, graphql } from "react-apollo";
 import { List, Icon } from "antd";
-import './App.css';
 
 import { GET_SERVICES } from "../queries";
 
