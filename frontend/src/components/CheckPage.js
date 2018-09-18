@@ -13,10 +13,12 @@ class CheckResultIcon extends React.PureComponent {
 
         const iconMap = {
             "Success": "check-circle",
+            "Failure": "exclamation-circle",
             "Error": "exclamation-circle",
         }
         const colorMap = {
             "Success": "#52c41a",
+            "Failure": "#c41919",
             "Error": "#c41919",
         }
 

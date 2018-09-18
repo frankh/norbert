@@ -17,7 +17,7 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-            <Layout>
+            <Layout style={{backgroundColor: "inherit"}}>
                 <Header />
                 <Content>
                     <Switch>

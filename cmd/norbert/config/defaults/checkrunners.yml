@@ -7,6 +7,14 @@ checkrunners:
     expected: [200, 204]
     timeout: "15s"
 
+- name: flaky
+  plugin: github.com/frankh/norbert/checkrunners/flaky
+  cron: "@every 10s"
+
+  vars:
+    successChance: 0.9
+    failureChance: 0.5
+
 # - name: http_auth
 #   plugin: github.com/frankh/norbert/checkrunners/http
 #   cron: "@every 2m"
@@ -27,3 +35,9 @@ checks:
 
   vars:
     url: https://rocketboard.arachnys.com/healthcheck
+
+checks:
+- name: "Flaky Check"
+  service: Rocketboard
+  checkrunner: flaky
+  severity: Info
