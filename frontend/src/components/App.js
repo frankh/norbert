@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { graphql } from "react-apollo";
 import { Layout } from "antd";
 import ServiceList from './ServiceList.js';
+import { Route, Switch, withRouter } from "react-router-dom";
+import CheckPage from './CheckPage.js';
 
 import { GET_SERVICES } from "../queries";
 
@@ -18,7 +20,10 @@ class App extends Component {
             <Layout>
                 <Header />
                 <Content>
-                    <ServiceList />
+                    <Switch>
+                        <Route path="/check/:id/" component={CheckPage} />
+                        <Route path="/" component={ServiceList}/>
+                    </Switch>
                 </Content>
                 <Footer />
             </Layout>
@@ -28,5 +33,5 @@ class App extends Component {
 }
 
 export default graphql(GET_SERVICES, { name: "getServices" })(
-    App
+    withRouter(App)
 );

@@ -31,9 +31,9 @@ type CheckResult struct {
 type CheckResultCode int
 
 const (
-	CheckResultSuccess CheckResultCode = iota
-	CheckResultFailure
-	CheckResultError
+	Success CheckResultCode = iota
+	Failure
+	Error
 )
 
 func (t *CheckResultCode) UnmarshalGQL(v interface{}) error {

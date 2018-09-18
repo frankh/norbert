@@ -7,9 +7,38 @@ export const GET_SERVICES = gql`
           url
 
           checks {
+            id
             name
             severity
           }
+        }
+    }
+`;
+
+export const GET_CHECK = gql`
+    query GetCheck($checkId: String!) {
+        getCheck(checkId: $checkId) {
+          name
+
+          results {
+            id
+            startTime
+            endTime
+            resultCode
+            errorMsg
+          }
+        }
+    }
+`;
+
+export const GET_RESULTS = gql`
+    query GetResults($checkId: String!) {
+        checkResults(checkId: $checkId) {
+          id
+          startTime
+          endTime
+          resultCode
+          errorMsg
         }
     }
 `;

@@ -68,6 +68,6 @@ func (db *sqlRepository) SaveCheckResult(result *models.CheckResult) error {
 
 func (db *sqlRepository) CheckResults(checkId string) ([]*models.CheckResult, error) {
 	results := []*models.CheckResult{}
-	err := db.Select(&results, "SELECT * FROM check_results WHERE checkId=$1 ORDER BY starttime ASC", checkId)
+	err := db.Select(&results, "SELECT * FROM check_results WHERE checkId=$1 ORDER BY starttime DESC LIMIT 100", checkId)
 	return results, err
 }

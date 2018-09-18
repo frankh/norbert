@@ -4,6 +4,7 @@ schema {
 
 type RootQuery {
     services: [Service!]
+    getCheck(checkId: String!): Check
 }
 
 type RootMutation {
@@ -19,9 +20,9 @@ enum Severity {
 }
 
 enum CheckResultCode {
-    CheckResultSuccess
-    CheckResultFailure
-    CheckResultError
+    Success
+    Failure
+    Error
 }
 
 type Service {

@@ -23,7 +23,7 @@ func RunCheck(c *models.Check) (result models.CheckResult) {
 	cr := plugins.GetRunner(c.CheckRunner)
 	if cr == nil {
 		log.Println("could not find checkrunner: ", c.CheckRunner)
-		result.ResultCode = check.CheckResultError
+		result.ResultCode = check.Error
 		return
 	}
 
@@ -32,7 +32,7 @@ func RunCheck(c *models.Check) (result models.CheckResult) {
 		b, err := json.Marshal(c.Vars)
 		if err != nil {
 			log.Println(err)
-			result.ResultCode = check.CheckResultError
+			result.ResultCode = check.Error
 			result.ErrorMsg = err.Error()
 			return
 		}
@@ -40,7 +40,7 @@ func RunCheck(c *models.Check) (result models.CheckResult) {
 		err = json.Unmarshal(b, &vars)
 		if err != nil {
 			log.Println(err)
-			result.ResultCode = check.CheckResultError
+			result.ResultCode = check.Error
 			result.ErrorMsg = err.Error()
 			return
 		}

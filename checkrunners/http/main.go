@@ -26,7 +26,7 @@ func (c *httpCheckRunner) Run(input check.CheckInput) check.CheckResult {
 	resp, err := http.Get(vars.Url)
 	if err != nil {
 		return check.CheckResult{
-			ResultCode: check.CheckResultError,
+			ResultCode: check.Error,
 			Error:      err,
 		}
 	}
@@ -34,13 +34,13 @@ func (c *httpCheckRunner) Run(input check.CheckInput) check.CheckResult {
 	for _, expected := range vars.Expected {
 		if resp.StatusCode == expected {
 			return check.CheckResult{
-				ResultCode: check.CheckResultSuccess,
+				ResultCode: check.Success,
 			}
 		}
 	}
 
 	return check.CheckResult{
-		ResultCode: check.CheckResultFailure,
+		ResultCode: check.Failure,
 	}
 }
 

@@ -63,6 +63,7 @@ type ComplexityRoot struct {
 
 	RootQuery struct {
 		Services func(childComplexity int) int
+		GetCheck func(childComplexity int, checkId string) int
 	}
 
 	Service struct {
@@ -80,9 +81,25 @@ type CheckResolver interface {
 }
 type RootQueryResolver interface {
 	Services(ctx context.Context) ([]models.Service, error)
+	GetCheck(ctx context.Context, checkId string) (*models.Check, error)
 }
 type ServiceResolver interface {
 	Checks(ctx context.Context, obj *models.Service) ([]models.Check, error)
+}
+
+func field_RootQuery_getCheck_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["checkId"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["checkId"] = arg0
+	return args, nil
+
 }
 
 func field_RootQuery___type_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
@@ -219,6 +236,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RootQuery.Services(childComplexity), true
+
+	case "RootQuery.getCheck":
+		if e.complexity.RootQuery.GetCheck == nil {
+			break
+		}
+
+		args, err := field_RootQuery_getCheck_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.RootQuery.GetCheck(childComplexity, args["checkId"].(string)), true
 
 	case "Service.name":
 		if e.complexity.Service.Name == nil {
@@ -708,6 +737,12 @@ func (ec *executionContext) _RootQuery(ctx context.Context, sel ast.SelectionSet
 				out.Values[i] = ec._RootQuery_services(ctx, field)
 				wg.Done()
 			}(i, field)
+		case "getCheck":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._RootQuery_getCheck(ctx, field)
+				wg.Done()
+			}(i, field)
 		case "__type":
 			out.Values[i] = ec._RootQuery___type(ctx, field)
 		case "__schema":
@@ -773,6 +808,36 @@ func (ec *executionContext) _RootQuery_services(ctx context.Context, field graph
 	}
 	wg.Wait()
 	return arr1
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _RootQuery_getCheck(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_RootQuery_getCheck_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "RootQuery",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(ctx context.Context) (interface{}, error) {
+		return ec.resolvers.RootQuery().GetCheck(ctx, args["checkId"].(string))
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Check)
+	rctx.Result = res
+
+	if res == nil {
+		return graphql.Null
+	}
+
+	return ec._Check(ctx, field.Selections, res)
 }
 
 // nolint: vetshadow
@@ -2293,6 +2358,7 @@ var parsedSchema = gqlparser.MustLoadSchema(
 
 type RootQuery {
     services: [Service!]
+    getCheck(checkId: String!): Check
 }
 
 type RootMutation {
@@ -2308,9 +2374,9 @@ enum Severity {
 }
 
 enum CheckResultCode {
-    CheckResultSuccess
-    CheckResultFailure
-    CheckResultError
+    Success
+    Failure
+    Error
 }
 
 type Service {

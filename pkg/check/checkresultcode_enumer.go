@@ -7,9 +7,9 @@ import (
 	"fmt"
 )
 
-const _CheckResultCodeName = "CheckResultSuccessCheckResultFailureCheckResultError"
+const _CheckResultCodeName = "SuccessFailureError"
 
-var _CheckResultCodeIndex = [...]uint8{0, 18, 36, 52}
+var _CheckResultCodeIndex = [...]uint8{0, 7, 14, 19}
 
 func (i CheckResultCode) String() string {
 	if i < 0 || i >= CheckResultCode(len(_CheckResultCodeIndex)-1) {
@@ -21,9 +21,9 @@ func (i CheckResultCode) String() string {
 var _CheckResultCodeValues = []CheckResultCode{0, 1, 2}
 
 var _CheckResultCodeNameToValueMap = map[string]CheckResultCode{
-	_CheckResultCodeName[0:18]:  0,
-	_CheckResultCodeName[18:36]: 1,
-	_CheckResultCodeName[36:52]: 2,
+	_CheckResultCodeName[0:7]:   0,
+	_CheckResultCodeName[7:14]:  1,
+	_CheckResultCodeName[14:19]: 2,
 }
 
 // CheckResultCodeString retrieves an enum value from the enum constants string name.
