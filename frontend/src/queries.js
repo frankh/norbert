@@ -42,3 +42,15 @@ export const GET_RESULTS = gql`
         }
     }
 `;
+
+export const RESULT_SUBSCRIPTION = gql`
+    subscription CheckResultSub($checkId: String!) {
+        checkResultSub(checkId: $checkId) {
+          id
+          startTime
+          endTime
+          resultCode
+          errorMsg
+        }
+    }
+`;

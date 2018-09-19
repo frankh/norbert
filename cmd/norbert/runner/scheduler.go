@@ -63,8 +63,11 @@ func (s *scheduler) listenForWork() {
 				if err := s.db.SaveCheckResult(&result); err != nil {
 					log.Println("Couldn't save check result:", err)
 				}
-				// TODO: get check ID from insert statement and return from SaveCheckResult
-				// s.nc.Publish("checks."+check)
+				resultBytes, _ := msgpack.Marshal(&result)
+				if err := s.nc.Publish("checks."+check.Id()+".results."+result.Id, resultBytes); err != nil {
+					log.Println("Couldn't publish check result")
+				}
+
 			}
 		}
 	}

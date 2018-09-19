@@ -71,7 +71,7 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		CheckResults func(childComplexity int, checkId string) int
+		CheckResultSub func(childComplexity int, checkId string) int
 	}
 }
 
@@ -86,7 +86,7 @@ type ServiceResolver interface {
 	Checks(ctx context.Context, obj *models.Service) ([]models.Check, error)
 }
 type SubscriptionResolver interface {
-	CheckResults(ctx context.Context, checkId string) (<-chan *models.CheckResult, error)
+	CheckResultSub(ctx context.Context, checkId string) (<-chan *models.CheckResult, error)
 }
 
 func field_RootQuery_getCheck_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
@@ -119,7 +119,7 @@ func field_RootQuery___type_args(rawArgs map[string]interface{}) (map[string]int
 
 }
 
-func field_Subscription_checkResults_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func field_Subscription_checkResultSub_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	args := map[string]interface{}{}
 	var arg0 string
 	if tmp, ok := rawArgs["checkId"]; ok {
@@ -287,17 +287,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Service.Checks(childComplexity), true
 
-	case "Subscription.checkResults":
-		if e.complexity.Subscription.CheckResults == nil {
+	case "Subscription.checkResultSub":
+		if e.complexity.Subscription.CheckResultSub == nil {
 			break
 		}
 
-		args, err := field_Subscription_checkResults_args(rawArgs)
+		args, err := field_Subscription_checkResultSub_args(rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Subscription.CheckResults(childComplexity, args["checkId"].(string)), true
+		return e.complexity.Subscription.CheckResultSub(childComplexity, args["checkId"].(string)), true
 
 	}
 	return 0, false
@@ -1050,16 +1050,16 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	}
 
 	switch fields[0].Name {
-	case "checkResults":
-		return ec._Subscription_checkResults(ctx, fields[0])
+	case "checkResultSub":
+		return ec._Subscription_checkResultSub(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}
 }
 
-func (ec *executionContext) _Subscription_checkResults(ctx context.Context, field graphql.CollectedField) func() graphql.Marshaler {
+func (ec *executionContext) _Subscription_checkResultSub(ctx context.Context, field graphql.CollectedField) func() graphql.Marshaler {
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := field_Subscription_checkResults_args(rawArgs)
+	args, err := field_Subscription_checkResultSub_args(rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return nil
@@ -1067,7 +1067,7 @@ func (ec *executionContext) _Subscription_checkResults(ctx context.Context, fiel
 	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
 		Field: field,
 	})
-	results, err := ec.resolvers.Subscription().CheckResults(ctx, args["checkId"].(string))
+	results, err := ec.resolvers.Subscription().CheckResultSub(ctx, args["checkId"].(string))
 	if err != nil {
 		ec.Error(ctx, err)
 		return nil
@@ -2400,7 +2400,7 @@ type RootQuery {
 }
 
 type Subscription {
-  checkResults(checkId: String!): CheckResult
+  checkResultSub(checkId: String!): CheckResult
 }
 
 enum Severity {

@@ -9,11 +9,11 @@ import (
 	"github.com/vmihailenco/msgpack"
 )
 
-func (r *resolver) CheckResults(ctx context.Context, checkId string) (<-chan *models.CheckResult, error) {
+func (r *resolver) CheckResultSub(ctx context.Context, checkId string) (<-chan *models.CheckResult, error) {
 	resultChan := make(chan *models.CheckResult, 100)
 
 	natsChan := make(chan *nats.Msg, 100)
-	sub, err := r.nc.ChanSubscribe("checks."+checkId+".results", natsChan)
+	sub, err := r.nc.ChanSubscribe("checks."+checkId+".results.*", natsChan)
 	if err != nil {
 		log.Println("ERROR: Failed to subscribe to check results channel")
 		return nil, err

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"log"
 	"net/url"
 	"time"
@@ -59,11 +60,25 @@ func NewRepository(dbURI string) (*sqlRepository, error) {
 }
 
 func (db *sqlRepository) SaveCheckResult(result *models.CheckResult) error {
-	_, err := db.NamedExec(`INSERT INTO check_results
+	rows, err := db.NamedQuery(`INSERT INTO check_results
       (checkid, starttime, endtime, resultcode, errormsg)
     VALUES (:checkid, :starttime, :endtime, :resultcode, :errormsg)
+    RETURNING id
   `, result)
-	return err
+	if err != nil {
+		return err
+	}
+	rows.Next()
+	cols, err := rows.SliceScan()
+	if err != nil || len(cols) == 0 {
+		return err
+	}
+	insertedId, ok := cols[0].([]byte)
+	if !ok {
+		return fmt.Errorf("Couldn't get inserted it")
+	}
+	result.Id = string(insertedId)
+	return nil
 }
 
 func (db *sqlRepository) CheckResults(checkId string) ([]*models.CheckResult, error) {

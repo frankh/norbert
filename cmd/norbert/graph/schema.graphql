@@ -8,7 +8,7 @@ type RootQuery {
 }
 
 type Subscription {
-  checkResults(checkId: String!): CheckResult
+  checkResultSub(checkId: String!): CheckResult
 }
 
 enum Severity {

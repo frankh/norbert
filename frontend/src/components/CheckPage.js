@@ -3,7 +3,7 @@ import { Query } from "react-apollo";
 import { List, Icon } from "antd";
 import { formatRelative } from 'date-fns'
 
-import { GET_CHECK } from "../queries";
+import { GET_CHECK, RESULT_SUBSCRIPTION } from "../queries";
 
 
 class CheckResultIcon extends React.PureComponent {
@@ -27,7 +27,7 @@ class CheckResultIcon extends React.PureComponent {
     }
 }
 
-class CheckResultsList extends React.PureComponent {
+class CheckResult extends React.PureComponent {
     render() {
         const result = this.props.result;
         return (
@@ -45,10 +45,44 @@ class CheckResultsList extends React.PureComponent {
 }
 
 
-class CheckPage extends React.PureComponent {
+class LiveCheckPage extends React.PureComponent {
+    onCheckResult = null;
+
+    componentDidMount() {
+        const { checkId, subscribe } = this.props;
+        this.onCheckResult = subscribe({
+            document: RESULT_SUBSCRIPTION,
+            variables: { checkId: checkId },
+            updateQuery: (prev, { subscriptionData: { data } }) => {
+                const result = data.checkResultSub;
+
+                var results = [result, ...prev.getCheck.results];
+
+                return {
+                    ...prev,
+                    getCheck: {
+                        ...prev.getCheck,
+                        results: results,
+                    }
+                };
+            },
+        });
+    }
+
     render() {
         return (
-            <Query query={GET_CHECK} variables={{ checkId: this.props.match.params.id }}>
+            <div className="checkResultsList">
+                {this.props.children}
+            </div>
+        )
+    }
+}
+
+class CheckPage extends React.PureComponent {
+    render() {
+        const checkId = this.props.match.params.id;
+        return (
+            <Query query={GET_CHECK} variables={{ checkId }}>
                 {({ loading, error, data, subscribeToMore }) => {
                     if (error) {
                         return (
@@ -61,15 +95,15 @@ class CheckPage extends React.PureComponent {
                         )
                     }
                     return (
-                        <div className="checkResultsList">
+                        <LiveCheckPage checkId={checkId} subscribe={subscribeToMore}>
                             <List
                                 itemLayout="horizontal"
                                 dataSource={data.getCheck.results}
                                 renderItem={result => (
-                                    <CheckResultsList key={result.id} result={result} />
+                                    <CheckResult key={result.id} result={result} />
                                 )}
                             />
-                        </div>
+                        </LiveCheckPage>
                     )
                 }}
             </Query>
