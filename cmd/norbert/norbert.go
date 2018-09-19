@@ -49,7 +49,7 @@ func main() {
 
 	e.Match([]string{"GET", "POST"}, "/query", echo.WrapHandler(handler.GraphQL(
 		graph.NewExecutableSchema(graph.Config{
-			Resolvers: graph.NewResolver(db),
+			Resolvers: graph.NewResolver(db, nc),
 		}),
 	)))
 

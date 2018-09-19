@@ -63,6 +63,8 @@ func (s *scheduler) listenForWork() {
 				if err := s.db.SaveCheckResult(&result); err != nil {
 					log.Println("Couldn't save check result:", err)
 				}
+				// TODO: get check ID from insert statement and return from SaveCheckResult
+				// s.nc.Publish("checks."+check)
 			}
 		}
 	}

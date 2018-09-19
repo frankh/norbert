@@ -35,7 +35,7 @@ func (c *flakyCheckRunner) Run(input check.CheckInput) check.CheckResult {
 		}
 	}
 
-	if rng.Float32() < vars.SuccessChance {
+	if rng.Float32() < vars.FailureChance {
 		return check.CheckResult{
 			ResultCode: check.Failure,
 			Error:      fmt.Errorf("oh no"),

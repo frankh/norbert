@@ -6,18 +6,20 @@ import (
 	"github.com/frankh/norbert/cmd/norbert/config"
 	"github.com/frankh/norbert/cmd/norbert/models"
 	"github.com/frankh/norbert/cmd/norbert/repository"
+	"github.com/nats-io/go-nats"
 )
 
 type resolver struct {
 	db repository.Repository
+	nc *nats.Conn
 }
 
 func (r *resolver) RootQuery() RootQueryResolver {
 	return r
 }
 
-func NewResolver(db repository.Repository) ResolverRoot {
-	return &resolver{db}
+func NewResolver(db repository.Repository, nc *nats.Conn) ResolverRoot {
+	return &resolver{db, nc}
 }
 
 func (r *resolver) Service() ServiceResolver {
@@ -25,6 +27,10 @@ func (r *resolver) Service() ServiceResolver {
 }
 
 func (r *resolver) Check() CheckResolver {
+	return r
+}
+
+func (r *resolver) Subscription() SubscriptionResolver {
 	return r
 }
 

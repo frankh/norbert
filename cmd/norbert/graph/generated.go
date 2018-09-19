@@ -36,6 +36,7 @@ type ResolverRoot interface {
 	Check() CheckResolver
 	RootQuery() RootQueryResolver
 	Service() ServiceResolver
+	Subscription() SubscriptionResolver
 }
 
 type DirectiveRoot struct {
@@ -58,9 +59,6 @@ type ComplexityRoot struct {
 		ErrorMsg   func(childComplexity int) int
 	}
 
-	RootMutation struct {
-	}
-
 	RootQuery struct {
 		Services func(childComplexity int) int
 		GetCheck func(childComplexity int, checkId string) int
@@ -73,6 +71,7 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
+		CheckResults func(childComplexity int, checkId string) int
 	}
 }
 
@@ -85,6 +84,9 @@ type RootQueryResolver interface {
 }
 type ServiceResolver interface {
 	Checks(ctx context.Context, obj *models.Service) ([]models.Check, error)
+}
+type SubscriptionResolver interface {
+	CheckResults(ctx context.Context, checkId string) (<-chan *models.CheckResult, error)
 }
 
 func field_RootQuery_getCheck_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
@@ -113,6 +115,21 @@ func field_RootQuery___type_args(rawArgs map[string]interface{}) (map[string]int
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+
+}
+
+func field_Subscription_checkResults_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["checkId"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["checkId"] = arg0
 	return args, nil
 
 }
@@ -269,6 +286,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Service.Checks(childComplexity), true
+
+	case "Subscription.checkResults":
+		if e.complexity.Subscription.CheckResults == nil {
+			break
+		}
+
+		args, err := field_Subscription_checkResults_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.CheckResults(childComplexity, args["checkId"].(string)), true
 
 	}
 	return 0, false
@@ -687,31 +716,6 @@ func (ec *executionContext) _CheckResult_errorMsg(ctx context.Context, field gra
 	return graphql.MarshalString(res)
 }
 
-var rootMutationImplementors = []string{"RootMutation"}
-
-// nolint: gocyclo, errcheck, gas, goconst
-func (ec *executionContext) _RootMutation(ctx context.Context, sel ast.SelectionSet, obj *RootMutation) graphql.Marshaler {
-	fields := graphql.CollectFields(ctx, sel, rootMutationImplementors)
-
-	out := graphql.NewOrderedMap(len(fields))
-	invalid := false
-	for i, field := range fields {
-		out.Keys[i] = field.Alias
-
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("RootMutation")
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-
-	if invalid {
-		return graphql.Null
-	}
-	return out
-}
-
 var rootQueryImplementors = []string{"RootQuery"}
 
 // nolint: gocyclo, errcheck, gas, goconst
@@ -1046,8 +1050,42 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	}
 
 	switch fields[0].Name {
+	case "checkResults":
+		return ec._Subscription_checkResults(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
+	}
+}
+
+func (ec *executionContext) _Subscription_checkResults(ctx context.Context, field graphql.CollectedField) func() graphql.Marshaler {
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Subscription_checkResults_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
+		Field: field,
+	})
+	results, err := ec.resolvers.Subscription().CheckResults(ctx, args["checkId"].(string))
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	return func() graphql.Marshaler {
+		res, ok := <-results
+		if !ok {
+			return nil
+		}
+		var out graphql.OrderedMap
+		out.Add(field.Alias, func() graphql.Marshaler {
+			if res == nil {
+				return graphql.Null
+			}
+
+			return ec._CheckResult(ctx, field.Selections, res)
+		}())
+		return &out
 	}
 }
 
@@ -2361,10 +2399,8 @@ type RootQuery {
     getCheck(checkId: String!): Check
 }
 
-type RootMutation {
-}
-
 type Subscription {
+  checkResults(checkId: String!): CheckResult
 }
 
 enum Severity {

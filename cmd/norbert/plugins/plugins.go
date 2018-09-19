@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"plugin"
 
@@ -47,6 +48,12 @@ func buildPlugin(name string, pluginUrl string) (string, error) {
 	}
 
 	dest := "./plugins/" + pluginUrl + ".so"
+
+	// If file already exists, don't try to rebuild.
+	if _, err := os.Stat(dest); err == nil {
+		return dest, nil
+	}
+
 	cmd = exec.Command("go", "build", "-buildmode=plugin", "-o", dest, pluginUrl)
 	err = cmd.Run()
 	if err != nil {

@@ -7,10 +7,8 @@ type RootQuery {
     getCheck(checkId: String!): Check
 }
 
-type RootMutation {
-}
-
 type Subscription {
+  checkResults(checkId: String!): CheckResult
 }
 
 enum Severity {
