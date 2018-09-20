@@ -23,6 +23,12 @@ enum CheckResultCode {
     Error
 }
 
+enum CheckStatus {
+    Ok
+    Failed
+    Initial
+}
+
 type Service {
     name: String!
     url: String!
@@ -34,6 +40,7 @@ type Check {
     id: String!
     name: String!
 
+    status: CheckStatus!
     severity: Severity!
 
     results: [CheckResult]

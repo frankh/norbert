@@ -51,6 +51,15 @@ type Check struct {
 	Vars interface{} `json:"vars"`
 }
 
+type CheckStatus int
+
+const (
+	_ CheckStatus = iota
+	Ok
+	Failed
+	Initial
+)
+
 func (c *Check) Id() string {
 	hash := fnv.New32()
 	hash.Write([]byte(c.Name + c.Service))
@@ -76,5 +85,20 @@ func (t *Severity) UnmarshalGQL(v interface{}) error {
 }
 
 func (t Severity) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(t.String()))
+}
+
+func (t *CheckStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	var err error
+	*t, err = CheckStatusString(str)
+	return err
+}
+
+func (t CheckStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(t.String()))
 }

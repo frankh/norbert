@@ -36,7 +36,6 @@ checks:
   vars:
     url: https://rocketboard.arachnys.com/healthcheck
 
-checks:
 - name: "Flaky Check"
   service: Rocketboard
   checkrunner: flaky

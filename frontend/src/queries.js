@@ -10,6 +10,7 @@ export const GET_SERVICES = gql`
             id
             name
             severity
+            status
           }
         }
     }

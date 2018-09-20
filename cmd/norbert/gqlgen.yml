@@ -10,6 +10,8 @@ models:
     model: github.com/frankh/norbert/cmd/norbert/models.Check
   CheckResult:
     model: github.com/frankh/norbert/cmd/norbert/models.CheckResult
+  CheckStatus:
+    model: github.com/frankh/norbert/cmd/norbert/models.CheckStatus
   CheckResultCode:
     model: github.com/frankh/norbert/pkg/check.CheckResultCode
   Severity:

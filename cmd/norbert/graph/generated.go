@@ -46,6 +46,7 @@ type ComplexityRoot struct {
 	Check struct {
 		Id       func(childComplexity int) int
 		Name     func(childComplexity int) int
+		Status   func(childComplexity int) int
 		Severity func(childComplexity int) int
 		Results  func(childComplexity int) int
 	}
@@ -76,6 +77,8 @@ type ComplexityRoot struct {
 }
 
 type CheckResolver interface {
+	Status(ctx context.Context, obj *models.Check) (models.CheckStatus, error)
+
 	Results(ctx context.Context, obj *models.Check) ([]*models.CheckResult, error)
 }
 type RootQueryResolver interface {
@@ -190,6 +193,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Check.Name(childComplexity), true
+
+	case "Check.status":
+		if e.complexity.Check.Status == nil {
+			break
+		}
+
+		return e.complexity.Check.Status(childComplexity), true
 
 	case "Check.severity":
 		if e.complexity.Check.Severity == nil {
@@ -385,6 +395,15 @@ func (ec *executionContext) _Check(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "status":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Check_status(ctx, field, obj)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
+				wg.Done()
+			}(i, field)
 		case "severity":
 			out.Values[i] = ec._Check_severity(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -449,6 +468,28 @@ func (ec *executionContext) _Check_name(ctx context.Context, field graphql.Colle
 	res := resTmp.(string)
 	rctx.Result = res
 	return graphql.MarshalString(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Check_status(ctx context.Context, field graphql.CollectedField, obj *models.Check) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "Check",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(ctx context.Context) (interface{}, error) {
+		return ec.resolvers.Check().Status(ctx, obj)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.CheckStatus)
+	rctx.Result = res
+	return res
 }
 
 // nolint: vetshadow
@@ -2415,6 +2456,12 @@ enum CheckResultCode {
     Error
 }
 
+enum CheckStatus {
+    Ok
+    Failed
+    Initial
+}
+
 type Service {
     name: String!
     url: String!
@@ -2426,6 +2473,7 @@ type Check {
     id: String!
     name: String!
 
+    status: CheckStatus!
     severity: Severity!
 
     results: [CheckResult]
