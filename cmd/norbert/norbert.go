@@ -34,7 +34,7 @@ func main() {
 		log.Fatal(err)
 	}
 	elector.Start()
-	runner.Start(nc, elector, db, config.Loaded.Checks)
+	runner.Start(nc, elector, db, config.AllChecks())
 
 	// Echo instance
 	e := echo.New()

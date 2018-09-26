@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS check_results (
   checkid TEXT,
   starttime TIMESTAMP,
   endtime TIMESTAMP,
-  resultcode INT,
+  resultcode TEXT,
   errormsg TEXT
 );
 

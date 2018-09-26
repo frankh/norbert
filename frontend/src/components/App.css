@@ -7,3 +7,20 @@
 .ant-list-item-meta {
   align-items: stretch;
 }
+
+.serviceListItem {
+  padding: 10px;
+  max-width: 80%;
+  margin: 10px auto;
+  border-radius: 6px;
+}
+
+.serviceListItem.stateOk {
+  border: 1px solid #6fd800;
+  background-color: #6fd8001a;
+}
+
+.serviceListItem.stateFailed {
+  border: 1px solid #d80000;
+  background-color: #d800001a;
+}

@@ -52,23 +52,24 @@ func (s *scheduler) listenForWork() {
 	for {
 		select {
 		case msg := <-requestChan:
-			// Notify that we've picked up the work
-			s.nc.Publish(msg.Reply, nil)
-			var check models.Check
-			err := msgpack.Unmarshal(msg.Data, &check)
-			if err != nil {
-				log.Println("Failed to read check message:", err)
-			} else {
-				result := RunCheck(&check)
-				if err := s.db.SaveCheckResult(&result); err != nil {
-					log.Println("Couldn't save check result:", err)
+			go func() {
+				// Notify that we've picked up the work
+				s.nc.Publish(msg.Reply, nil)
+				var check models.Check
+				err := msgpack.Unmarshal(msg.Data, &check)
+				if err != nil {
+					log.Println("Failed to read check message:", err)
+				} else {
+					result := RunCheck(&check)
+					if err := s.db.SaveCheckResult(&result); err != nil {
+						log.Println("Couldn't save check result:", err)
+					}
+					resultBytes, _ := msgpack.Marshal(&result)
+					if err := s.nc.Publish("checks."+check.Id()+".results."+result.Id, resultBytes); err != nil {
+						log.Println("Couldn't publish check result")
+					}
 				}
-				resultBytes, _ := msgpack.Marshal(&result)
-				if err := s.nc.Publish("checks."+check.Id()+".results."+result.Id, resultBytes); err != nil {
-					log.Println("Couldn't publish check result")
-				}
-
-			}
+			}()
 		}
 	}
 
@@ -84,6 +85,6 @@ func triggerCheck(s scheduler, check *models.Check) {
 
 	_, err := s.nc.Request("check_requests", request, 500*time.Millisecond)
 	if err != nil {
-		log.Println("Check request not picked up")
+		log.Println("Check request not picked up:", err)
 	}
 }

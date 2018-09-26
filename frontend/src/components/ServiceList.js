@@ -5,16 +5,29 @@ import { List, Icon } from "antd";
 import { GET_SERVICES } from "../queries";
 
 
+const StatusToOrder = {
+    "Ok": 0,
+    "Failed": 1,
+}
+
+const OrderToStatus = {
+    NaN: "Ok",
+    0: "Ok",
+    1: "Failed",
+}
+
 class ServiceListItem extends React.PureComponent {
     render() {
         const service = this.props.service;
+        const checks = service.checks;
+        const status = OrderToStatus[Math.max(...checks.map(check => StatusToOrder[check.status]))];
+
         return (
-            <div className="serviceListItem">
+            <div className={`serviceListItem state${status}`}>
                 <List.Item>
                     <List.Item.Meta
                       title={service.name}
                       description={<a href={service.url}>{service.url}</a>}
-
                     />
                     <Icon type="undo" theme="outlined" spin className="reverse"/>
                 </List.Item>
