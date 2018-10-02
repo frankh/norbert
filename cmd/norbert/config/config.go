@@ -17,14 +17,16 @@ type Config struct {
 	CheckRunners []*models.CheckRunner `json:"checkrunners"`
 	Checks       []*models.Check       `json:"checks"`
 	Services     []*models.Service     `json:"services"`
+	Alerters     []*models.Alerter     `json:"alerters"`
 }
 
+var Alerters map[string]*models.Alerter
 var CheckRunners map[string]*models.CheckRunner
 var Checks map[string][]*models.Check
 var ChecksById map[string]*models.Check
 var Services map[string]*models.Service
 
-var Loaded = make([]Config, 0)
+var Loaded []Config
 
 func configFromYaml(contents []byte) (*Config, error) {
 	var config Config
@@ -47,7 +49,7 @@ func AllChecks() []*models.Check {
 
 func init() {
 	defaults, _ := DefaultsFetcher.Fetch()
-	Loaded = append(Loaded, *defaults)
+	Loaded = defaults
 
 	githubToken := os.Getenv("GITHUB_API_TOKEN")
 	if githubToken != "" {
@@ -62,6 +64,7 @@ func init() {
 	Checks = make(map[string][]*models.Check)
 	ChecksById = make(map[string]*models.Check)
 	CheckRunners = make(map[string]*models.CheckRunner)
+	Alerters = make(map[string]*models.Alerter)
 	Services = make(map[string]*models.Service)
 
 	for _, conf := range Loaded {
@@ -69,6 +72,12 @@ func init() {
 			// TODO check for dups
 			checkrunner := cr
 			CheckRunners[checkrunner.Name] = checkrunner
+		}
+
+		for _, a := range conf.Alerters {
+			// TODO check for dups
+			alerter := a
+			Alerters[alerter.Name] = alerter
 		}
 
 		for _, s := range conf.Services {

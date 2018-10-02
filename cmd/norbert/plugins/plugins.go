@@ -9,14 +9,20 @@ import (
 	"plugin"
 
 	"github.com/frankh/norbert/cmd/norbert/config"
+	"github.com/frankh/norbert/pkg/alert"
 	"github.com/frankh/norbert/pkg/check"
 )
 
-var checkrunners map[string]check.CheckRunner
+var checkrunners = make(map[string]check.CheckRunner)
+var alerters = make(map[string]alert.Alerter)
 
 type runnerPlugin struct {
 	check.CheckRunner
 	DefaultVars interface{}
+}
+
+type alerterPlugin struct {
+	alert.Alerter
 }
 
 func (r *runnerPlugin) Run(input check.CheckInput) check.CheckResult {
@@ -33,10 +39,6 @@ func (r *runnerPlugin) Vars() interface{} {
 
 	// Return the copy
 	return vars
-}
-
-func init() {
-	checkrunners = make(map[string]check.CheckRunner)
 }
 
 func buildPlugin(name string, pluginUrl string) (string, error) {
@@ -64,7 +66,49 @@ func buildPlugin(name string, pluginUrl string) (string, error) {
 	return dest, nil
 }
 
-func LoadPlugin(name string, pluginUrl string, defaultVars interface{}) error {
+func LoadAlerter(name string, pluginUrl string) error {
+	log.Println("Loading plugin", name)
+	if alerters[name] != nil {
+		log.Println("Already loaded plugin: ", name, ", skipping")
+	} else {
+		pluginFile, err := buildPlugin(name, pluginUrl)
+		if err != nil {
+			return err
+		}
+
+		plug, err := plugin.Open(pluginFile)
+		if err != nil {
+			log.Println(err, plug)
+			return err
+		}
+
+		symNewAlerter, err := plug.Lookup("NewAlerter")
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		newAlerter, ok := symNewAlerter.(func(alert.AlerterConfig) alert.Alerter)
+		if !ok {
+			err := fmt.Errorf("unexpected type from module symbol")
+			log.Println(err)
+			return err
+		}
+
+		alerter := newAlerter(alert.AlerterConfig{})
+		err = alerter.Validate()
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		alerters[name] = &alerterPlugin{alerter}
+	}
+
+	return nil
+}
+
+func LoadRunner(name string, pluginUrl string, defaultVars interface{}) error {
 	log.Println("Loading plugin", name)
 	if checkrunners[name] != nil {
 		log.Println("Already loaded plugin: ", name, ", skipping")
@@ -120,7 +164,10 @@ func LoadPlugin(name string, pluginUrl string, defaultVars interface{}) error {
 
 func LoadAll() {
 	for _, runner := range config.CheckRunners {
-		LoadPlugin(runner.Name, runner.Plugin, runner.Vars)
+		LoadRunner(runner.Name, runner.Plugin, runner.Vars)
+	}
+	for _, alerter := range config.Alerters {
+		LoadAlerter(alerter.Name, alerter.Plugin)
 	}
 }
 

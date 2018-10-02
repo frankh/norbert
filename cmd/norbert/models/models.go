@@ -28,6 +28,11 @@ type CheckRunner struct {
 	Vars interface{} `json:"vars"`
 }
 
+type Alerter struct {
+	Name   string `json:"name"`
+	Plugin string `json:"plugin"`
+}
+
 type CheckResult struct {
 	Id      string
 	CheckId string

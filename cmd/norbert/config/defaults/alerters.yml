@@ -1,0 +1,3 @@
+alerters:
+- name: console
+  plugin: github.com/frankh/norbert/alerters/console
