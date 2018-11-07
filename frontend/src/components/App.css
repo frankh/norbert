@@ -1,11 +1,51 @@
+@import url('https://fonts.googleapis.com/css?family=Comfortaa');
+
+#root, .App, .ant-layout {
+  height: 100%;
+}
+
+.ant-layout {
+  background-color: #e8eef2;
+}
+
 .ant-list-item-meta-avatar {
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
 
+.logo-title {
+  position: relative;
+  margin: auto;
+  padding-top: 15px;
+}
+
+.logo-title img {
+  position: absolute;
+  width: 40px;
+  left: 20px;
+}
+
+.logo-title h1 {
+  font-family: Orbitron;
+  padding-left: 40px;
+  padding-top: 17px;
+}
+
 .ant-list-item-meta {
   align-items: stretch;
+}
+
+.ant-layout-sider {
+  background-color: #f7ffff;
+}
+
+.ant-spin-container {
+  background-color: #e8eef2;
+}
+
+.ant-layout-header {
+  background-color: #1d2d7d;
 }
 
 .serviceListItem {

@@ -24,6 +24,8 @@ checkrunners:
 #     timeout: "15s"
 
 services:
+- name: "Service 2"
+  url: https://service.arachnys.com
 - name: "Rocketboard"
   url: https://rocketboard.arachnys.com
 
@@ -38,5 +40,10 @@ checks:
 
 - name: "Flaky Check"
   service: Rocketboard
+  checkrunner: flaky
+  severity: Info
+
+- name: "Flaky Check 2"
+  service: Service 2
   checkrunner: flaky
   severity: Info
