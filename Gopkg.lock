@@ -64,12 +64,6 @@
   version = "v0.5.0"
 
 [[projects]]
-  name = "github.com/imdario/mergo"
-  packages = ["."]
-  revision = "9f23e2d6bd2a77f959b2bf6acdbefd708a83a4a4"
-  version = "v0.3.6"
-
-[[projects]]
   branch = "master"
   name = "github.com/jmoiron/sqlx"
   packages = [
@@ -271,6 +265,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "31aa9932512cc3239ca09c46e27c0328acf9f4abbdea7e03bdbc40fb886e732a"
+  inputs-digest = "ba4c65313452926595bf85bbce5b56909c918c0f65f8d250f892c1ac04471a46"
   solver-name = "gps-cdcl"
   solver-version = 1
