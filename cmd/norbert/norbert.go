@@ -21,7 +21,7 @@ func main() {
 
 	dbURI := os.Getenv("NORBERT_DATABASE_URI")
 	if dbURI == "" {
-		dbURI = "postgres://root@localhost/norbert?sslmode=disable"
+		dbURI = "postgres://root@localhost:26257?sslmode=disable"
 	}
 
 	db, err := repository.NewRepository(dbURI)

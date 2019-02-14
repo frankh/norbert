@@ -45,7 +45,7 @@ func NewRepository(dbURI string) (*sqlRepository, error) {
 		if err == nil {
 			break
 		}
-		log.Printf("Unable to connect to database, retrying (%d attempts left)\n", tries)
+		log.Printf("Unable to connect to database (%s), retrying (%d attempts left)\n", err, tries)
 		time.Sleep(500 * time.Millisecond)
 	}
 	if err != nil {
