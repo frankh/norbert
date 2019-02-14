@@ -2,11 +2,11 @@ service:
   name: "Rocketboard"
 
   vars:
-    url: https://rocketboard.arachnys.com
+    url: https://rocketboard.example.com
 
 checks:
 - name: "HTTP Check"
   checker: http
 
   vars:
-    url: https://rocketboard.arachnys.com/healthcheck
+    url: https://rocketboard.example.com/healthcheck

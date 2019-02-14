@@ -29,7 +29,6 @@ class ServiceListItem extends React.PureComponent {
                       title={service.name}
                       description={<a href={service.url}>{service.url}</a>}
                     />
-                    <Icon type="undo" theme="outlined" spin className="reverse"/>
                 </List.Item>
             </div>
         )

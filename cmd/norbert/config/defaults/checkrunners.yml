@@ -25,9 +25,9 @@ checkrunners:
 
 services:
 - name: "Service 2"
-  url: https://service.arachnys.com
+  url: https://service.example.com
 - name: "Rocketboard"
-  url: https://rocketboard.arachnys.com
+  url: https://rocketboard.example.com
 
 checks:
 - name: "HTTP Check"
@@ -36,7 +36,7 @@ checks:
   severity: Info
 
   vars:
-    url: https://rocketboard.arachnys.com/healthcheck
+    url: https://rocketboard.example.com/healthcheck
 
 - name: "Flaky Check"
   service: Rocketboard
