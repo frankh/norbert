@@ -2,9 +2,11 @@ package graph
 
 import (
 	"context"
+	"time"
 
 	"github.com/frankh/norbert/cmd/norbert/config"
 	"github.com/frankh/norbert/cmd/norbert/models"
+	"github.com/frankh/norbert/cmd/norbert/runner"
 	"github.com/frankh/norbert/cmd/norbert/repository"
 	"github.com/frankh/norbert/pkg/check"
 	"github.com/nats-io/go-nats"
@@ -12,6 +14,7 @@ import (
 
 type resolver struct {
 	db repository.Repository
+	scheduler runner.Scheduler
 	nc *nats.Conn
 }
 
@@ -19,8 +22,8 @@ func (r *resolver) RootQuery() RootQueryResolver {
 	return r
 }
 
-func NewResolver(db repository.Repository, nc *nats.Conn) ResolverRoot {
-	return &resolver{db, nc}
+func NewResolver(db repository.Repository, scheduler runner.Scheduler, nc *nats.Conn) ResolverRoot {
+	return &resolver{db, scheduler, nc}
 }
 
 func (r *resolver) Service() ServiceResolver {
@@ -59,6 +62,20 @@ func (r *resolver) Checks(ctx context.Context, svc *models.Service) ([]models.Ch
 
 func (r *resolver) Results(ctx context.Context, c *models.Check) ([]*models.CheckResult, error) {
 	return r.db.CheckResults(c.Id())
+}
+
+func (r *resolver) NextRun(ctx context.Context, c *models.Check) (time.Time, error) {
+	results, err := r.Results(ctx, c)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	var prevRun *time.Time
+	if len(results) > 0 {
+		prevRun = &results[0].StartTime
+	}
+
+	return r.scheduler.NextRun(c.Id(), prevRun), nil
 }
 
 func (r *resolver) Status(ctx context.Context, c *models.Check) (models.CheckStatus, error) {

@@ -34,7 +34,7 @@ func main() {
 		log.Fatal(err)
 	}
 	elector.Start()
-	runner.Start(nc, elector, db, config.AllChecks())
+	scheduler := runner.Start(nc, elector, db, config.AllChecks())
 
 	// Echo instance
 	e := echo.New()
@@ -49,7 +49,7 @@ func main() {
 
 	e.Match([]string{"GET", "POST"}, "/query", echo.WrapHandler(handler.GraphQL(
 		graph.NewExecutableSchema(graph.Config{
-			Resolvers: graph.NewResolver(db, nc),
+			Resolvers: graph.NewResolver(db, scheduler, nc),
 		}),
 	)))
 

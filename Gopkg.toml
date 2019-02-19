@@ -24,6 +24,7 @@
 #   go-tests = true
 #   unused-packages = true
 
+# So that we vendor the gqlgen main cmd
 required = ["github.com/99designs/gqlgen"]
 
 [[constraint]]

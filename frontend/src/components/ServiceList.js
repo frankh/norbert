@@ -16,6 +16,15 @@ const OrderToStatus = {
     1: "Failed",
 }
 
+class CheckSummary extends React.PureComponent {
+    render() {
+        return (
+            <div className={"checkSummary " + this.props.check.status} title={this.props.check.name}>
+            </div>
+        )
+    }
+}
+
 class ServiceListItem extends React.PureComponent {
     componentDidMount() {
         this.onUpdate = this.props.subscribe({
@@ -24,7 +33,7 @@ class ServiceListItem extends React.PureComponent {
             updateQuery: (prev, { subscriptionData: { data } }) => {
                 const newService = data.serviceChanged
                 for( var i = 0; i < prev.services.length; i++ ) {
-                    if( prev.services[i].name == newService.name ) {
+                    if( prev.services[i].name === newService.name ) {
                         prev.services[i] = newService
                     }
                 }
@@ -45,6 +54,7 @@ class ServiceListItem extends React.PureComponent {
                       title={service.name}
                       description={<a href={service.url}>{service.url}</a>}
                     />
+                    {checks.map(check => <CheckSummary check={check} />)}
                 </List.Item>
             </div>
         )

@@ -87,6 +87,22 @@
   version = "v0.5.0"
 
 [[projects]]
+  digest = "1:2b48b4b9c32eafe68ceb15ced4d7419014e8f011be7a5489d400fdf844217d16"
+  name = "github.com/jackc/pgx"
+  packages = [
+    ".",
+    "chunkreader",
+    "internal/sanitize",
+    "pgio",
+    "pgproto3",
+    "pgtype",
+    "stdlib",
+  ]
+  pruneopts = "UT"
+  revision = "c59c9cac59ab95eceb0c12ff338923c62f411ea2"
+  version = "v3.3.0"
+
+[[projects]]
   branch = "master"
   digest = "1:7654989089e5bd5b6734ec3be8b695e87d3f1f8d95620b343fd7d3995a5b60d7"
   name = "github.com/jmoiron/sqlx"
@@ -120,17 +136,6 @@
   pruneopts = "UT"
   revision = "2a618302b929cc20862dda3aa6f02f64dbe740dd"
   version = "v0.2.7"
-
-[[projects]]
-  digest = "1:8ef506fc2bb9ced9b151dafa592d4046063d744c646c1bbe801982ce87e4bc24"
-  name = "github.com/lib/pq"
-  packages = [
-    ".",
-    "oid",
-  ]
-  pruneopts = "UT"
-  revision = "4ded0e9383f75c197b3a2aaa6d590ac52df6fd79"
-  version = "v1.0.0"
 
 [[projects]]
   digest = "1:c658e84ad3916da105a761660dcaeb01e63416c8ec7bc62256a9b411a05fcd67"
@@ -371,10 +376,10 @@
     "github.com/ghodss/yaml",
     "github.com/gobuffalo/packr",
     "github.com/google/uuid",
+    "github.com/jackc/pgx/stdlib",
     "github.com/jmoiron/sqlx",
     "github.com/labstack/echo",
     "github.com/labstack/echo/middleware",
-    "github.com/lib/pq",
     "github.com/nats-io/gnatsd/server",
     "github.com/nats-io/go-nats",
     "github.com/robfig/cron",

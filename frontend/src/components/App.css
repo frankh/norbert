@@ -84,4 +84,18 @@
   animation-name: failing;
 }
 
+.checkSummary {    
+  background-color: #dadada;
+  width: 20px;
+  height: 20px;
+  border-radius: 100%;
+  margin: 2px;
+}
 
+.checkSummary.Ok {
+  background-color: #6fd800cc;
+}
+
+.checkSummary.Failed {
+  background-color: #d80000cc;
+}

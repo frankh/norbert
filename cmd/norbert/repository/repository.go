@@ -9,7 +9,7 @@ import (
 	"github.com/frankh/norbert/cmd/norbert/config"
 	"github.com/frankh/norbert/cmd/norbert/models"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/stdlib"
 )
 
 type sqlRepository struct {
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS check_results (
   checkid TEXT,
   starttime TIMESTAMP,
   endtime TIMESTAMP,
-  resultcode TEXT,
+  resultcode INT,
   errormsg TEXT
 );
 
@@ -43,7 +43,7 @@ func NewRepository(dbURI string) (*sqlRepository, error) {
 
 	var db *sqlx.DB
 	for tries := 10; tries > 0; tries -= 1 {
-		db, err = sqlx.Connect(url.Scheme, url.String())
+		db, err = sqlx.Connect("pgx", url.String())
 		if err == nil {
 			break
 		}
@@ -75,9 +75,9 @@ func (db *sqlRepository) SaveCheckResult(result *models.CheckResult) error {
 	if err != nil || len(cols) == 0 {
 		return err
 	}
-	insertedId, ok := cols[0].([]byte)
+	insertedId, ok := cols[0].(string)
 	if !ok {
-		return fmt.Errorf("Couldn't get inserted it")
+		return fmt.Errorf("Couldn't get inserted ID", cols)
 	}
 	result.Id = string(insertedId)
 	return nil

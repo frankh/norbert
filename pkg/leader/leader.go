@@ -3,7 +3,9 @@ package leader
 import (
 	"database/sql"
 	"log"
+	"context"
 	"time"
+	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -73,7 +75,10 @@ func (e *leaderElector) Start() {
 			select {
 			case <-ticker.C:
 				wasLeader := e.IsLeader()
-				e.elect()
+				err := e.elect()
+				if err != nil {
+					log.Fatal("Failed to elect leader:", err)
+				}
 				if !wasLeader && e.IsLeader() {
 					log.Println("Elected leader")
 				}
@@ -97,14 +102,18 @@ func (e *leaderElector) IsLeader() bool {
 }
 
 func (e *leaderElector) elect() error {
-	e.db.Ping()
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	defer cancel()
+	if err := e.db.PingContext(ctx); err != nil {
+		return fmt.Errorf("Unable to perform leader election, connection to DB lost")
+	}
+
 	tx, err := e.db.Begin()
 	if err != nil {
 		log.Println("Error starting transaction: ", err)
 		return err
 	}
 	defer tx.Rollback()
-
 	var l lease
 
 	row := tx.QueryRow(`SELECT id, lease_end, CURRENT_TIMESTAMP FROM "` + e.config.Table + `" WHERE singleton='leader'`)
@@ -130,9 +139,14 @@ func (e *leaderElector) elect() error {
 		// Re-fetch updated lease
 		row := tx.QueryRow(`SELECT id, lease_end, CURRENT_TIMESTAMP FROM "` + e.config.Table + `" WHERE singleton='leader'`)
 		row.Scan(&l.id, &l.leaseEnd, &l.dbTime)
+	} else {
+		log.Println("Lease not over", l)
 	}
 
 	e.currentLease = &l
-	tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		log.Println("Error committing lease")
+	}
 	return nil
 }

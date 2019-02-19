@@ -14,6 +14,7 @@ import (
 
 type Scheduler interface {
 	Stop()
+	NextRun(checkId string, prevRun *time.Time) time.Time
 }
 
 type scheduler struct {
@@ -21,20 +22,34 @@ type scheduler struct {
 	elector leader.LeaderElector
 	cron    *cron.Cron
 	db      repository.Repository
+	checkCronMap map[string]cron.EntryID
 }
 
 func Start(nc *nats.Conn, elector leader.LeaderElector, db repository.Repository, checks []*models.Check) Scheduler {
 	c := cron.New()
-	s := scheduler{nc, elector, c, db}
+	s := scheduler{nc, elector, c, db, make(map[string]cron.EntryID)}
 
 	for _, check := range checks {
 		checkCopy := check
-		c.AddFunc(check.Cron, func() { triggerCheck(s, checkCopy) })
+		entryId, _ := c.AddFunc(check.Cron, func() { triggerCheck(s, checkCopy) })
+		s.checkCronMap[check.Id()] = entryId
 	}
 
 	c.Start()
 	go s.listenForWork()
 	return &s
+}
+
+func (s *scheduler) NextRun(checkId string, prevRun *time.Time) time.Time {
+	entryId, ok := s.checkCronMap[checkId]
+	if !ok {
+		// TODO
+	}
+	entry := s.cron.Entry(entryId)
+	if prevRun != nil {
+		return entry.Schedule.Next(*prevRun)
+	}
+	return entry.Next
 }
 
 func (s *scheduler) Stop() {

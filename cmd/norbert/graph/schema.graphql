@@ -44,6 +44,7 @@ type Check {
     status: CheckStatus!
     severity: Severity!
 
+    nextRun: Time!
     results: [CheckResult]
 }
 
