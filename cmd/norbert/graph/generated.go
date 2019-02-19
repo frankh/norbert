@@ -73,6 +73,7 @@ type ComplexityRoot struct {
 
 	Subscription struct {
 		CheckResultSub func(childComplexity int, checkId string) int
+		ServiceChanged func(childComplexity int, serviceName string) int
 	}
 }
 
@@ -90,6 +91,7 @@ type ServiceResolver interface {
 }
 type SubscriptionResolver interface {
 	CheckResultSub(ctx context.Context, checkId string) (<-chan *models.CheckResult, error)
+	ServiceChanged(ctx context.Context, serviceName string) (<-chan *models.Service, error)
 }
 
 func field_RootQuery_getCheck_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
@@ -133,6 +135,21 @@ func field_Subscription_checkResultSub_args(rawArgs map[string]interface{}) (map
 		}
 	}
 	args["checkId"] = arg0
+	return args, nil
+
+}
+
+func field_Subscription_serviceChanged_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["serviceName"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["serviceName"] = arg0
 	return args, nil
 
 }
@@ -308,6 +325,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Subscription.CheckResultSub(childComplexity, args["checkId"].(string)), true
+
+	case "Subscription.serviceChanged":
+		if e.complexity.Subscription.ServiceChanged == nil {
+			break
+		}
+
+		args, err := field_Subscription_serviceChanged_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.ServiceChanged(childComplexity, args["serviceName"].(string)), true
 
 	}
 	return 0, false
@@ -1093,6 +1122,8 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	switch fields[0].Name {
 	case "checkResultSub":
 		return ec._Subscription_checkResultSub(ctx, fields[0])
+	case "serviceChanged":
+		return ec._Subscription_serviceChanged(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}
@@ -1125,6 +1156,38 @@ func (ec *executionContext) _Subscription_checkResultSub(ctx context.Context, fi
 			}
 
 			return ec._CheckResult(ctx, field.Selections, res)
+		}())
+		return &out
+	}
+}
+
+func (ec *executionContext) _Subscription_serviceChanged(ctx context.Context, field graphql.CollectedField) func() graphql.Marshaler {
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Subscription_serviceChanged_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
+		Field: field,
+	})
+	results, err := ec.resolvers.Subscription().ServiceChanged(ctx, args["serviceName"].(string))
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	return func() graphql.Marshaler {
+		res, ok := <-results
+		if !ok {
+			return nil
+		}
+		var out graphql.OrderedMap
+		out.Add(field.Alias, func() graphql.Marshaler {
+			if res == nil {
+				return graphql.Null
+			}
+
+			return ec._Service(ctx, field.Selections, res)
 		}())
 		return &out
 	}
@@ -2442,6 +2505,7 @@ type RootQuery {
 
 type Subscription {
   checkResultSub(checkId: String!): CheckResult
+  serviceChanged(serviceName: String!): Service
 }
 
 enum Severity {

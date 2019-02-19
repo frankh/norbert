@@ -24,6 +24,7 @@
 #   go-tests = true
 #   unused-packages = true
 
+required = ["github.com/99designs/gqlgen"]
 
 [[constraint]]
   name = "github.com/99designs/gqlgen"

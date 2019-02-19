@@ -49,18 +49,19 @@
 }
 
 .serviceListItem {
-  padding: 10px;
+  padding: 0px 10px;
   max-width: 80%;
   margin: 10px auto;
   border-radius: 6px;
 }
 
 .serviceListItem.stateOk {
-  border: 1px solid #6fd800;
-  background-color: #6fd8001a;
+  box-shadow: #6fd800 0px 0px 6px;
+  box-shadow: 1px;
+  background-color: white;
 }
 
 .serviceListItem.stateFailed {
-  border: 1px solid #d80000;
-  background-color: #d800001a;
+  box-shadow: #d80000 0px 0px 6px;
+  background-color: white;
 }

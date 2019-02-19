@@ -16,6 +16,22 @@ export const GET_SERVICES = gql`
     }
 `;
 
+export const SERVICE_SUBSCRIPTION = gql`
+    subscription OnServiceUpdate($serviceName: String!) {
+        serviceChanged(serviceName: $serviceName) {
+          name
+          url
+
+          checks {
+            id
+            name
+            severity
+            status
+          }
+        }
+    }
+`;
+
 export const GET_CHECK = gql`
     query GetCheck($checkId: String!) {
         getCheck(checkId: $checkId) {

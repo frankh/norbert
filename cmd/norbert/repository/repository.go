@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/frankh/norbert/cmd/norbert/config"
 	"github.com/frankh/norbert/cmd/norbert/models"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -18,6 +19,7 @@ type sqlRepository struct {
 type Repository interface {
 	SaveCheckResult(*models.CheckResult) error
 	CheckResults(string) ([]*models.CheckResult, error)
+	GetService(string) (*models.Service, error)
 }
 
 var schema = `
@@ -85,4 +87,8 @@ func (db *sqlRepository) CheckResults(checkId string) ([]*models.CheckResult, er
 	results := []*models.CheckResult{}
 	err := db.Select(&results, "SELECT * FROM check_results WHERE checkId=$1 ORDER BY starttime DESC LIMIT 100", checkId)
 	return results, err
+}
+
+func (db *sqlRepository) GetService(serviceName string) (*models.Service, error) {
+	return config.Services[serviceName], nil
 }

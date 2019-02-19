@@ -2,13 +2,18 @@
 
 
 [[projects]]
-  digest = "1:6087cbec1f60d9baf435b286742d02de0ba2558707645f6f4370ba950b7f579c"
+  digest = "1:3aae853dc6d1c8bd14876a2628f4c54e62f0658f2930cb3f893295850dfbd141"
   name = "github.com/99designs/gqlgen"
   packages = [
+    ".",
+    "cmd",
+    "codegen",
+    "codegen/templates",
     "complexity",
     "graphql",
     "graphql/introspection",
     "handler",
+    "internal/gopath",
   ]
   pruneopts = "UT"
   revision = "636435b68700211441303f1a5ed92f3768ba5774"
@@ -194,6 +199,14 @@
   version = "v1.1"
 
 [[projects]]
+  digest = "1:b24d38b282bacf9791408a080f606370efa3d364e4b5fd9ba0f7b87786d3b679"
+  name = "github.com/urfave/cli"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "cfb38830724cc34fedffe9a2a29fb54fa9169cd1"
+  version = "v1.20.0"
+
+[[projects]]
   digest = "1:c468422f334a6b46a19448ad59aaffdfc0a36b08fdcc1c749a0b29b6453d7e59"
   name = "github.com/valyala/bytebufferpool"
   packages = ["."]
@@ -289,6 +302,29 @@
   revision = "d0be0721c37eeb5299f245a996a483160fc36940"
 
 [[projects]]
+  branch = "master"
+  digest = "1:7eee604fd833c4346b8708d184f121dc52d652cc588c18683e09b3f14c83eca4"
+  name = "golang.org/x/tools"
+  packages = [
+    "go/ast/astutil",
+    "go/buildutil",
+    "go/gcexportdata",
+    "go/internal/cgo",
+    "go/internal/gcimporter",
+    "go/internal/packagesdriver",
+    "go/loader",
+    "go/packages",
+    "go/types/typeutil",
+    "imports",
+    "internal/fastwalk",
+    "internal/gopathwalk",
+    "internal/module",
+    "internal/semver",
+  ]
+  pruneopts = "UT"
+  revision = "8dcb7bc8c7fe0a895995c76c721cef79419ac98a"
+
+[[projects]]
   digest = "1:53c3751fb866ebbaea4396ea2cfbe6f07368f8b6b37d1c246cf6986b87cd179f"
   name = "google.golang.org/appengine"
   packages = [
@@ -328,6 +364,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/99designs/gqlgen",
     "github.com/99designs/gqlgen/graphql",
     "github.com/99designs/gqlgen/graphql/introspection",
     "github.com/99designs/gqlgen/handler",

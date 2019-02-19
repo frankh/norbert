@@ -26,20 +26,20 @@ checkrunners:
 services:
 - name: "Service 2"
   url: https://service.example.com
-- name: "Rocketboard"
-  url: https://rocketboard.example.com
+- name: "Google"
+  url: https://www.google.com/
 
 checks:
 - name: "HTTP Check"
-  service: Rocketboard
+  service: Google
   checkrunner: http
   severity: Info
 
   vars:
-    url: https://rocketboard.example.com/healthcheck
+    url: https://www.google.com/
 
 - name: "Flaky Check"
-  service: Rocketboard
+  service: Google
   checkrunner: flaky
   severity: Info
 

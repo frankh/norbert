@@ -97,6 +97,7 @@ func (e *leaderElector) IsLeader() bool {
 }
 
 func (e *leaderElector) elect() error {
+	e.db.Ping()
 	tx, err := e.db.Begin()
 	if err != nil {
 		log.Println("Error starting transaction: ", err)

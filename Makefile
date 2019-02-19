@@ -20,6 +20,6 @@ version:
 	@echo "${VERSION}"
 
 gqlgen:
-	cd cmd/norbert && gqlgen
+	cd cmd/norbert && go run ../../vendor/github.com/99designs/gqlgen
 
 .PHONY: build publish version gqlgen

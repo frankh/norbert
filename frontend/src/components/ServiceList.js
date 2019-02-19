@@ -1,8 +1,8 @@
 import React from 'react';
 import { Query, graphql } from "react-apollo";
-import { List, Icon } from "antd";
+import { List } from "antd";
 
-import { GET_SERVICES } from "../queries";
+import { GET_SERVICES, SERVICE_SUBSCRIPTION } from "../queries";
 
 
 const StatusToOrder = {
@@ -17,6 +17,22 @@ const OrderToStatus = {
 }
 
 class ServiceListItem extends React.PureComponent {
+    componentDidMount() {
+        this.onUpdate = this.props.subscribe({
+            document: SERVICE_SUBSCRIPTION,
+            variables: { serviceName: this.props.service.name },
+            updateQuery: (prev, { subscriptionData: { data } }) => {
+                const newService = data.serviceChanged
+                for( var i = 0; i < prev.services.length; i++ ) {
+                    if( prev.services[i].name == newService.name ) {
+                        prev.services[i] = newService
+                    }
+                }
+                return prev
+            }
+        })
+    }
+
     render() {
         const service = this.props.service;
         const checks = service.checks;
@@ -56,7 +72,7 @@ class ServiceList extends React.PureComponent {
                             <List
                                 dataSource={data.services}
                                 renderItem={service => (
-                                    <ServiceListItem key={service.name} service={service} />
+                                    <ServiceListItem key={service.name} service={service} subscribe={subscribeToMore}/>
                                 )}
                             />
                         </div>

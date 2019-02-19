@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { graphql } from "react-apollo";
 import { Layout } from "antd";
-import { Menu, Icon, Button } from 'antd';
+import { Menu, Icon } from 'antd';
 import ServiceList from './ServiceList.js';
 import { Route, Switch, withRouter } from "react-router-dom";
 import CheckPage from './CheckPage.js';
@@ -20,8 +20,8 @@ class App extends Component {
       <div className="App">
         <Layout>
           <Sider>
-            <div class="logo-title">
-              <img src="logo.png"></img>
+            <div className="logo-title">
+              <img src="logo.png" alt="Logo"></img>
               <h1>Norbert</h1>
             </div>
             <Menu

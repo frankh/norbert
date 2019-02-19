@@ -68,6 +68,16 @@ func (s *scheduler) listenForWork() {
 					if err := s.nc.Publish("checks."+check.Id()+".results."+result.Id, resultBytes); err != nil {
 						log.Println("Couldn't publish check result")
 					}
+
+					service, err := s.db.GetService(check.Service)
+					if err != nil {
+						log.Println("Failed to get service")
+						return
+					}
+					serviceBytes, _ := msgpack.Marshal(&service)
+					if err := s.nc.Publish("service."+check.Service, serviceBytes); err != nil {
+						log.Println("Couldn't publish check result")
+					}
 				}
 			}()
 		}
