@@ -53,15 +53,35 @@
   max-width: 80%;
   margin: 10px auto;
   border-radius: 6px;
+
+  transition: all 1s ease;
+  animation-fill-mode: forwards;
+  animation-duration: 1s;
+}
+
+@keyframes failing {
+  from {background-color: #d8000033;}
+  to {background-color: white;}
+}
+
+@keyframes ok {
+  from {background-color: #6fd80033;}
+  to {background-color: white;}
 }
 
 .serviceListItem.stateOk {
   box-shadow: #6fd800 0px 0px 6px;
   box-shadow: 1px;
   background-color: white;
+
+  animation-name: ok;
 }
 
 .serviceListItem.stateFailed {
   box-shadow: #d80000 0px 0px 6px;
   background-color: white;
+
+  animation-name: failing;
 }
+
+
