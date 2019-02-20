@@ -47,3 +47,9 @@ checks:
   service: Service 2
   checkrunner: flaky
   severity: Info
+
+- name: "Flaky Check Fast"
+  service: Service 2
+  checkrunner: flaky
+  severity: Info
+  cron: "@every 2s"

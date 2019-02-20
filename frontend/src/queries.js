@@ -11,7 +11,8 @@ export const GET_SERVICES = gql`
             name
             severity
             status
-            nextRun
+            nextRunSeconds
+            prevRunSeconds
           }
         }
     }
@@ -28,7 +29,8 @@ export const SERVICE_SUBSCRIPTION = gql`
             name
             severity
             status
-            nextRun
+            nextRunSeconds
+            prevRunSeconds
           }
         }
     }

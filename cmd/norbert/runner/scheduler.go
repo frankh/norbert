@@ -44,6 +44,7 @@ func (s *scheduler) NextRun(checkId string, prevRun *time.Time) time.Time {
 	entryId, ok := s.checkCronMap[checkId]
 	if !ok {
 		// TODO
+		return time.Time{}
 	}
 	entry := s.cron.Entry(entryId)
 	if prevRun != nil {

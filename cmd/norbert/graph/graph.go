@@ -64,10 +64,10 @@ func (r *resolver) Results(ctx context.Context, c *models.Check) ([]*models.Chec
 	return r.db.CheckResults(c.Id())
 }
 
-func (r *resolver) NextRun(ctx context.Context, c *models.Check) (time.Time, error) {
+func (r *resolver) NextRunSeconds(ctx context.Context, c *models.Check) (float64, error) {
 	results, err := r.Results(ctx, c)
 	if err != nil {
-		return time.Time{}, err
+		return 0, err
 	}
 
 	var prevRun *time.Time
@@ -75,7 +75,22 @@ func (r *resolver) NextRun(ctx context.Context, c *models.Check) (time.Time, err
 		prevRun = &results[0].StartTime
 	}
 
-	return r.scheduler.NextRun(c.Id(), prevRun), nil
+	nextTime := r.scheduler.NextRun(c.Id(), prevRun)
+	return nextTime.Sub(time.Now()).Seconds(), nil
+}
+
+func (r *resolver) PrevRunSeconds(ctx context.Context, c *models.Check) (float64, error) {
+	results, err := r.Results(ctx, c)
+	if err != nil {
+		return 0, err
+	}
+
+	var prevRun *time.Time
+	if len(results) > 0 {
+		prevRun = &results[0].StartTime
+	}
+
+	return prevRun.Sub(time.Now()).Seconds(), nil
 }
 
 func (r *resolver) Status(ctx context.Context, c *models.Check) (models.CheckStatus, error) {

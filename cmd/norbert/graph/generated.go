@@ -44,12 +44,13 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Check struct {
-		Id       func(childComplexity int) int
-		Name     func(childComplexity int) int
-		Status   func(childComplexity int) int
-		Severity func(childComplexity int) int
-		NextRun  func(childComplexity int) int
-		Results  func(childComplexity int) int
+		Id             func(childComplexity int) int
+		Name           func(childComplexity int) int
+		Status         func(childComplexity int) int
+		Severity       func(childComplexity int) int
+		NextRunSeconds func(childComplexity int) int
+		PrevRunSeconds func(childComplexity int) int
+		Results        func(childComplexity int) int
 	}
 
 	CheckResult struct {
@@ -81,7 +82,8 @@ type ComplexityRoot struct {
 type CheckResolver interface {
 	Status(ctx context.Context, obj *models.Check) (models.CheckStatus, error)
 
-	NextRun(ctx context.Context, obj *models.Check) (time.Time, error)
+	NextRunSeconds(ctx context.Context, obj *models.Check) (float64, error)
+	PrevRunSeconds(ctx context.Context, obj *models.Check) (float64, error)
 	Results(ctx context.Context, obj *models.Check) ([]*models.CheckResult, error)
 }
 type RootQueryResolver interface {
@@ -227,12 +229,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Check.Severity(childComplexity), true
 
-	case "Check.nextRun":
-		if e.complexity.Check.NextRun == nil {
+	case "Check.nextRunSeconds":
+		if e.complexity.Check.NextRunSeconds == nil {
 			break
 		}
 
-		return e.complexity.Check.NextRun(childComplexity), true
+		return e.complexity.Check.NextRunSeconds(childComplexity), true
+
+	case "Check.prevRunSeconds":
+		if e.complexity.Check.PrevRunSeconds == nil {
+			break
+		}
+
+		return e.complexity.Check.PrevRunSeconds(childComplexity), true
 
 	case "Check.results":
 		if e.complexity.Check.Results == nil {
@@ -447,10 +456,19 @@ func (ec *executionContext) _Check(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
-		case "nextRun":
+		case "nextRunSeconds":
 			wg.Add(1)
 			go func(i int, field graphql.CollectedField) {
-				out.Values[i] = ec._Check_nextRun(ctx, field, obj)
+				out.Values[i] = ec._Check_nextRunSeconds(ctx, field, obj)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
+				wg.Done()
+			}(i, field)
+		case "prevRunSeconds":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Check_prevRunSeconds(ctx, field, obj)
 				if out.Values[i] == graphql.Null {
 					invalid = true
 				}
@@ -562,7 +580,7 @@ func (ec *executionContext) _Check_severity(ctx context.Context, field graphql.C
 }
 
 // nolint: vetshadow
-func (ec *executionContext) _Check_nextRun(ctx context.Context, field graphql.CollectedField, obj *models.Check) graphql.Marshaler {
+func (ec *executionContext) _Check_nextRunSeconds(ctx context.Context, field graphql.CollectedField, obj *models.Check) graphql.Marshaler {
 	rctx := &graphql.ResolverContext{
 		Object: "Check",
 		Args:   nil,
@@ -570,7 +588,7 @@ func (ec *executionContext) _Check_nextRun(ctx context.Context, field graphql.Co
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(ctx context.Context) (interface{}, error) {
-		return ec.resolvers.Check().NextRun(ctx, obj)
+		return ec.resolvers.Check().NextRunSeconds(ctx, obj)
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -578,9 +596,31 @@ func (ec *executionContext) _Check_nextRun(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(time.Time)
+	res := resTmp.(float64)
 	rctx.Result = res
-	return graphql.MarshalTime(res)
+	return graphql.MarshalFloat(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Check_prevRunSeconds(ctx context.Context, field graphql.CollectedField, obj *models.Check) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "Check",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(ctx context.Context) (interface{}, error) {
+		return ec.resolvers.Check().PrevRunSeconds(ctx, obj)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	rctx.Result = res
+	return graphql.MarshalFloat(res)
 }
 
 // nolint: vetshadow
@@ -2580,7 +2620,8 @@ type Check {
     status: CheckStatus!
     severity: Severity!
 
-    nextRun: Time!
+    nextRunSeconds: Float!
+    prevRunSeconds: Float!
     results: [CheckResult]
 }
 

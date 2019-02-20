@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@emotion/core": "^10.0.7",
     "antd": "^3.9.2",
     "apollo-cache-inmemory": "^1.2.10",
     "apollo-client": "^2.4.2",
     "apollo-link-error": "^1.1.1",
     "apollo-link-ws": "^1.0.9",
     "date-fns": "^2.0.0-alpha.16",
+    "emotion": "^10.0.7",
     "graphql": "^0.13.0",
     "graphql-tag": "^2.9.2",
     "react": "^16.5.1",
@@ -16,6 +18,7 @@
     "react-dom": "^16.5.1",
     "react-router-dom": "^4.3.1",
     "react-scripts": "1.1.5",
+    "shallowequal": "^1.1.0",
     "subscriptions-transport-ws": "^0.9.14"
   },
   "scripts": {
